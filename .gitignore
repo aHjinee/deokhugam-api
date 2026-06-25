@@ -23,3 +23,38 @@ uploads/
 # OS
 .DS_Store
 Thumbs.db
+
+# Java
+*.class
+*.war
+*.ear
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Logs
+logs/
+*.log
+*.log.*
+hs_err_pid*
+replay_pid*
+
+# JaCoCo
+jacoco.exec
+coverage/
+
+# Environment
+.env.*
+!.env.example
+
+# Spring Profile
+application-local.yml
+application-dev.yml
+application-prod.yml
+
+# Temporary files
+*.swp
+*.swo
+*~
