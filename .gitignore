@@ -1,60 +1,110 @@
-# Gradle
-.gradle/
-build/
-!gradle/wrapper/gradle-wrapper.jar
-
-# IDE
+# =========================
+# IntelliJ IDEA
+# =========================
 .idea/
 *.iml
+*.iws
+out/
+
+# 공유할 설정
+!.idea/codeStyles
+!.idea/runConfigurations
+
+# =========================
+# VS Code
+# =========================
 .vscode/
 
-# Spring Boot
-*.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+# =========================
+# Gradle
+# =========================
+.gradle/
+build/
+**/build/
+!src/**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
 
-# 환경변수 (절대 커밋 금지)
-.env
-
-# 업로드 파일 (로컬 dev 저장 폴더)
-uploads/
-.blog/
-
-# OS
-.DS_Store
-Thumbs.db
-
+# =========================
 # Java
+# =========================
 *.class
+*.jar
 *.war
 *.ear
+*.hprof
 
-# Eclipse
-.project
-.classpath
-.settings/
+# =========================
+# Environment
+# =========================
+.env
 
+# =========================
 # Logs
+# =========================
+.logs/
 logs/
 *.log
 *.log.*
 hs_err_pid*
 replay_pid*
 
-# JaCoCo
-jacoco.exec
-coverage/
+# =========================
+# Upload / Local Storage
+# =========================
+uploads/
+.blog/
+my_dir/
 
-# Environment
-.env.*
-!.env.example
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+*.icloud
 
-# Spring Profile
-application-local.yml
-application-dev.yml
-application-prod.yml
+# =========================
+# Windows
+# =========================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# Temporary files
+# =========================
+# Eclipse
+# =========================
+.project
+.classpath
+
+# =========================
+# Temporary
+# =========================
 *.swp
 *.swo
 *~
