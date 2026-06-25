@@ -1,7 +1,8 @@
-package com.sbproject.deokhugam.common.entity;
+package com.sbproject.deokhugam.review.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.sbproject.deokhugam.common.entity.Book;
-import com.sbproject.deokhugam.common.entity.User;
+import com.sbproject.deokhugam.common.entity.BaseEntity;
+import com.sbproject.deokhugam.book.entity.Book;
+import com.sbproject.deokhugam.user.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

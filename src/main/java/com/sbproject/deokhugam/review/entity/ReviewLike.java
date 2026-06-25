@@ -1,5 +1,5 @@
-package com.sbproject.deokhugam.common.entity;
-package com.sbproject.deokhugam.common.User;
+package com.sbproject.deokhugam.review.entity;
+import com.sbproject.deokhugam.user.entity.User;
 
 import java.time.Instant;
 import java.util.UUID;
