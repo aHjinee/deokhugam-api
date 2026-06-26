@@ -2,14 +2,10 @@ package com.sbproject.deokhugam.review.dto;
 
 import java.time.Instant;
 import java.util.UUID;
-
-import com.querydsl.core.types.Order;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @NoArgsConstructor
