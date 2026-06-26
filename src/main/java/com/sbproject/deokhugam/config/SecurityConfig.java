@@ -22,9 +22,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/users/login",
-                                "/api/users/register",
+                                "/api/users/",
                                 "/swagger-ui/**",
-                                "/api-docs/**"
+                                "/api-docs/**",
+                                "/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );

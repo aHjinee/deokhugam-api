@@ -11,7 +11,6 @@ import org.hibernate.annotations.Where;
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
 @SuperBuilder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,5 +28,10 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private String password;
-    
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
 }
+
