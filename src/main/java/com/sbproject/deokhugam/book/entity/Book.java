@@ -20,7 +20,7 @@ import org.hibernate.annotations.ColumnDefault;
 @SuperBuilder
 @Table(name = "books")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends BaseEntity {
 
