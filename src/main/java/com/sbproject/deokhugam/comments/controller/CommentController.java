@@ -1,9 +1,19 @@
 package com.sbproject.deokhugam.comments.controller;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import com.sbproject.deokhugam.comments.dto.CommentDto;
 import com.sbproject.deokhugam.comments.service.CommentService;
+import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,4 +23,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentController {
 
 	private final CommentService commentService;
+
+	@GetMapping
+	public ResponseEntity<SlicePageResponse<CommentDto>> findComments(
+		@RequestParam UUID reviewId,
+		@RequestParam(defaultValue = "DESC") String direction,
+		@RequestParam(required = false) String cursor,
+		@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant after,
+		@RequestParam(defaultValue = "50") int limit
+	) {
+		return ResponseEntity.ok(commentService.findComments(reviewId, direction, cursor, after, limit));
+	}
+
+	@GetMapping("/{commentId}")
+	public ResponseEntity<CommentDto> findComment(@PathVariable UUID commentId) {
+		return ResponseEntity.ok(commentService.findComment(commentId));
+	}
 }

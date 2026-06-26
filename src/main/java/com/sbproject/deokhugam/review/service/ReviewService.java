@@ -1,4 +1,4 @@
 package com.sbproject.deokhugam.review.service;
 
-public interface reviewService {
+public interface ReviewService {
 }

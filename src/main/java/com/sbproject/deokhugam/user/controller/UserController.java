@@ -4,6 +4,7 @@ import com.sbproject.deokhugam.user.dto.UserDto;
 import com.sbproject.deokhugam.user.dto.UserLoginRequest;
 import com.sbproject.deokhugam.user.dto.UserRegisterRequest;
 import com.sbproject.deokhugam.user.dto.UserUpdateRequest;
+import com.sbproject.deokhugam.user.exception.UnauthorizedAccessException;
 import com.sbproject.deokhugam.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,6 @@ public class UserController {
     public ResponseEntity<UserDto> login(
             @Valid @RequestBody UserLoginRequest request
     ) {
-
         return ResponseEntity.ok(
                 userService.login(request)
         );
@@ -50,24 +50,37 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> update(
             @PathVariable UUID userId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
             @Valid @RequestBody UserUpdateRequest request
     ) {
+        if (!userId.equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
         return ResponseEntity.ok(
                 userService.update(userId, request.nickname()));
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> delete(
-            @PathVariable UUID userId
+            @PathVariable UUID userId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
+        if (!userId.equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
         userService.delete(userId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}/hard")
     public ResponseEntity<Void> hardDelete(
-            @PathVariable UUID userId
+            @PathVariable UUID userId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+
     ) {
+        if (!userId.equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
         userService.hardDelete(userId);
         return ResponseEntity.noContent().build();
     }
