@@ -23,7 +23,7 @@ import java.util.UUID;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-public class NotificationTemp {
+public class Notification {
     @Id
     @Column(updatable = false, nullable = false, columnDefinition = "uuid")
     private UUID id;
