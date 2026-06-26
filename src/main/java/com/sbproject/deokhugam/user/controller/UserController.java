@@ -2,6 +2,7 @@ package com.sbproject.deokhugam.user.controller;
 
 import com.sbproject.deokhugam.user.dto.UserDto;
 import com.sbproject.deokhugam.user.dto.UserLoginRequest;
+import com.sbproject.deokhugam.user.dto.UserRegisterRequest;
 import com.sbproject.deokhugam.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,15 @@ public class UserController {
 
         return ResponseEntity.ok(
                 userService.login(request)
+        );
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserDto> register(
+            @Valid @RequestBody UserRegisterRequest request
+    ) {
+        return ResponseEntity.status(201).body(
+                userService.register(request)
         );
     }
 
