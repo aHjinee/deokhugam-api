@@ -2,6 +2,7 @@ package com.sbproject.deokhugam.book.service.impl;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.sbproject.deokhugam.book.dto.BookOrderBy;
 import com.sbproject.deokhugam.book.dto.CursorPageResponseBookDto;
 import com.sbproject.deokhugam.book.dto.Direction;
 import com.sbproject.deokhugam.book.entity.Book;
+import com.sbproject.deokhugam.book.exception.BookNotFoundException;
 import com.sbproject.deokhugam.book.mapper.BookMapper;
 import com.sbproject.deokhugam.book.repository.BookRepository;
 import com.sbproject.deokhugam.book.service.BookService;
@@ -51,5 +53,12 @@ public class BookServiceImpl implements BookService {
 
 		return new CursorPageResponseBookDto(bookDtoList, nextCursor, lastBook.createdAt(),
 											 size, totalElements, books.hasNext());
+	}
+
+	@Override
+	public BookDto getBook(UUID bookId) {
+		Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+
+		return bookMapper.toBookDto(book);
 	}
 }

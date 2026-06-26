@@ -42,5 +42,18 @@ public class BookController {
 		return ResponseEntity.ok(bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
 	}
 
+	@PostMapping()
+	public ResponseEntity<Void> createBook() {
+		return ResponseEntity.ok().build();
+	}
 
+	@PostMapping("/isbn/ocr")
+	public ResponseEntity<Void> ocrBook() {
+		return ResponseEntity.ok().build();
+	}
+
+	@GetMapping("/{bookId}")
+	public ResponseEntity<BookDto> getBook(@PathVariable UUID bookId) {
+		return ResponseEntity.ok(bookService.getBook(bookId));
+	}
 }

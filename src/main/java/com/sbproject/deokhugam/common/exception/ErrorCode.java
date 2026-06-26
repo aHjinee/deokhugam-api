@@ -12,6 +12,9 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS("이미 존재하는 사용자입니다."),
     INVALID_CREDENTIALS("아이디 또는 비밀번호가 올바르지 않습니다."),
 
+	//Book
+	BOOK_NOT_FOUND("도서를 찾을 수 없습니다."),
+
     // Post
     POST_NOT_FOUND("리뷰를 찾을 수 없습니다."),
 
