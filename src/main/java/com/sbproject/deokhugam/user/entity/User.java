@@ -5,23 +5,20 @@ import com.sbproject.deokhugam.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
-import java.time.Instant;
-import java.util.UUID;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
 @SuperBuilder
-//@ToString(callSuper = true, exclude = "attachments")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
+
 public class User extends BaseEntity {
-    @Id
-    @Column(nullable = false, updatable = false)
-    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -32,29 +29,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
-
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
-
-        Instant now = Instant.now();
-
-        createdAt = now;
-        updatedAt = now;
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = Instant.now();
-    }
 }
+
