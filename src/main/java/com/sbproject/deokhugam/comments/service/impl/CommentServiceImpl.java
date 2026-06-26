@@ -5,12 +5,12 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
-import com.sbproject.deokhugam.comments.dto.CursorPageResponseCommentDto;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
 import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.comments.service.CommentService;
+import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
-	public CursorPageResponseCommentDto findComments(
+	public SlicePageResponse<CommentDto> findComments(
 		UUID reviewId,
 		String direction,
 		String cursor,
@@ -66,14 +66,14 @@ public class CommentServiceImpl implements CommentService {
 		Instant nextAfter = lastComment == null ? null : lastComment.getCreatedAt();
 		String nextCursor = nextAfter == null ? null : nextAfter.toString();
 
-		return new CursorPageResponseCommentDto(
-			content,
-			nextCursor,
-			nextAfter,
-			content.size(),
-			commentRepository.countByReview_IdAndDeletedAtIsNull(reviewId),
-			hasNext
-		);
+		return SlicePageResponse.<CommentDto>builder()
+			.content(content)
+			.nextCursor(nextCursor)
+			.nextAfter(nextAfter)
+			.size(content.size())
+			.totalElements(commentRepository.countByReview_IdAndDeletedAtIsNull(reviewId))
+			.hasNext(hasNext)
+			.build();
 	}
 
 	private List<com.sbproject.deokhugam.comments.entity.Comment> findCommentEntities(

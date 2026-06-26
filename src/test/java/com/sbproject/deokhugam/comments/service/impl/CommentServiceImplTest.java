@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sbproject.deokhugam.comments.dto.CursorPageResponseCommentDto;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
 import com.sbproject.deokhugam.comments.entity.Comment;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
 import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
+import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.user.entity.User;
@@ -126,7 +126,7 @@ class CommentServiceImplTest {
 		)).thenReturn(List.of(firstComment, secondComment));
 		when(commentRepository.countByReview_IdAndDeletedAtIsNull(reviewId)).thenReturn(2L);
 
-		CursorPageResponseCommentDto result = commentService.findComments(
+		SlicePageResponse<CommentDto> result = commentService.findComments(
 			reviewId,
 			"DESC",
 			null,
@@ -220,7 +220,7 @@ class CommentServiceImplTest {
 		)).thenReturn(List.of(comment));
 		when(commentRepository.countByReview_IdAndDeletedAtIsNull(reviewId)).thenReturn(1L);
 
-		CursorPageResponseCommentDto result = commentService.findComments(
+		SlicePageResponse<CommentDto> result = commentService.findComments(
 			reviewId,
 			"DESC",
 			null,

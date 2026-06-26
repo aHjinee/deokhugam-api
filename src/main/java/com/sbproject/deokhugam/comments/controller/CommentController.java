@@ -3,9 +3,9 @@ package com.sbproject.deokhugam.comments.controller;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.sbproject.deokhugam.comments.dto.CursorPageResponseCommentDto;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
 import com.sbproject.deokhugam.comments.service.CommentService;
+import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +25,7 @@ public class CommentController {
 	private final CommentService commentService;
 
 	@GetMapping
-	public ResponseEntity<CursorPageResponseCommentDto> findComments(
+	public ResponseEntity<SlicePageResponse<CommentDto>> findComments(
 		@RequestParam UUID reviewId,
 		@RequestParam(defaultValue = "DESC") String direction,
 		@RequestParam(required = false) String cursor,
