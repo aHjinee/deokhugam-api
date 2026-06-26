@@ -153,4 +153,66 @@ class UserServiceImplTest {
         assertThatThrownBy(() -> userService.findById(userId))
                 .isInstanceOf(UserNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("닉네임 수정 성공")
+    void update_success() {
+        // given
+        UUID userId = UUID.randomUUID();
+        User user = User.builder()
+                .email("test@test.com")
+                .nickname("테스터")
+                .password("encodedPassword")
+                .build();
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        UserDto result = userService.update(userId, "새닉네임");
+
+        // then
+        assertThat(result.getNickname()).isEqualTo("새닉네임");
+    }
+
+    @Test
+    @DisplayName("닉네임 수정 실패 - 존재하지 않는 사용자")
+    void update_fail_not_found() {
+        // given
+        UUID userId = UUID.randomUUID();
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.update(userId, "새닉네임"))
+                .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("논리 삭제 성공")
+    void delete_success() {
+        // given
+        UUID userId = UUID.randomUUID();
+        User user = User.builder()
+                .email("test@test.com")
+                .nickname("테스터")
+                .password("encodedPassword")
+                .build();
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        userService.delete(userId);
+
+        // then
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    @DisplayName("논리 삭제 실패 - 존재하지 않는 사용자")
+    void delete_fail_not_found() {
+        // given
+        UUID userId = UUID.randomUUID();
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.delete(userId))
+                .isInstanceOf(UserNotFoundException.class);
+    }
 }
