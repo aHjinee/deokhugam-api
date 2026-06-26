@@ -1,4 +1,4 @@
 package com.sbproject.deokhugam.review.controller;
 
-public class reviewController {
+public class ReviewController {
 }

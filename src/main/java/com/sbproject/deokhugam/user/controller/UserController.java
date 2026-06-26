@@ -3,14 +3,15 @@ package com.sbproject.deokhugam.user.controller;
 import com.sbproject.deokhugam.user.dto.UserDto;
 import com.sbproject.deokhugam.user.dto.UserLoginRequest;
 import com.sbproject.deokhugam.user.dto.UserRegisterRequest;
+import com.sbproject.deokhugam.user.dto.UserUpdateRequest;
+import com.sbproject.deokhugam.user.exception.UnauthorizedAccessException;
 import com.sbproject.deokhugam.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,19 +24,65 @@ public class UserController {
     public ResponseEntity<UserDto> login(
             @Valid @RequestBody UserLoginRequest request
     ) {
-
         return ResponseEntity.ok(
                 userService.login(request)
         );
     }
 
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<UserDto> register(
             @Valid @RequestBody UserRegisterRequest request
     ) {
         return ResponseEntity.status(201).body(
                 userService.register(request)
         );
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDto> findById(
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok(
+                userService.findById(userId)
+        );
+    }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity<UserDto> update(
+            @PathVariable UUID userId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+            @Valid @RequestBody UserUpdateRequest request
+    ) {
+        if (!userId.equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
+        return ResponseEntity.ok(
+                userService.update(userId, request.nickname()));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID userId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+    ) {
+        if (!userId.equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
+        userService.delete(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{userId}/hard")
+    public ResponseEntity<Void> hardDelete(
+            @PathVariable UUID userId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+
+    ) {
+        if (!userId.equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
+        userService.hardDelete(userId);
+        return ResponseEntity.noContent().build();
     }
 
 }
