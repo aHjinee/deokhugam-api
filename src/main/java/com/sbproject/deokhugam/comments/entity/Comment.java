@@ -2,9 +2,14 @@ package com.sbproject.deokhugam.comments.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sbproject.deokhugam.common.entity.BaseEntity;
+import com.sbproject.deokhugam.review.entity.Review;
+import com.sbproject.deokhugam.user.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -12,8 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "comments")
@@ -25,11 +28,13 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends BaseEntity {
 
-	@Column(name = "review_id", nullable = false, columnDefinition = "uuid")
-	private UUID reviewId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "review_id", nullable = false)
+	private Review review;
 
-	@Column(name = "user_id", nullable = false, columnDefinition = "uuid")
-	private UUID userId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
 	@Column(nullable = false, length = 500)
 	private String content;
