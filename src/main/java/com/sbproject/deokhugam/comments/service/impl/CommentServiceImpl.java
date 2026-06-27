@@ -5,13 +5,19 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
+import com.sbproject.deokhugam.comments.dto.CommentCreateRequest;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
+import com.sbproject.deokhugam.comments.entity.Comment;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
 import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.comments.service.CommentService;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
+import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
+import com.sbproject.deokhugam.user.entity.User;
+import com.sbproject.deokhugam.user.exception.UserNotFoundException;
+import com.sbproject.deokhugam.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +34,25 @@ public class CommentServiceImpl implements CommentService {
 
 	private final CommentRepository commentRepository;
 	private final ReviewRepository reviewRepository;
+	private final UserRepository userRepository;
+
+	@Override
+	@Transactional
+	public CommentDto createComment(CommentCreateRequest request, UUID requestUserId) {
+		Review review = reviewRepository.findById(request.reviewId())
+			.orElseThrow(() -> new ReviewNotFoundException(request.reviewId()));
+		User user = userRepository.findById(requestUserId)
+			.orElseThrow(() -> UserNotFoundException.withId(requestUserId));
+
+		Comment comment = Comment.builder()
+			.review(review)
+			.user(user)
+			.content(request.content())
+			.build();
+
+		review.setCommentCount(review.getCommentCount() + 1);
+		return CommentDto.from(commentRepository.save(comment));
+	}
 
 	@Override
 	public CommentDto findComment(UUID commentId) {
