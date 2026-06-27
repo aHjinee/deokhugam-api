@@ -13,6 +13,11 @@ public enum ErrorCode {
     INVALID_CREDENTIALS("아이디 또는 비밀번호가 올바르지 않습니다."),
     UNAUTHORIZED_ACCESS("권한이 없습니다."),
 
+	//Book
+	BOOK_NOT_FOUND("도서를 찾을 수 없습니다."),
+	ISBN_EXTRACTION_FAILED("ISBN을 추출할 수 없습니다."),
+	OCR_PROCESSING_FAILED("이미지 처리 중 오류가 발생했습니다."),
+
     // Post
     POST_NOT_FOUND("리뷰를 찾을 수 없습니다."),
 
