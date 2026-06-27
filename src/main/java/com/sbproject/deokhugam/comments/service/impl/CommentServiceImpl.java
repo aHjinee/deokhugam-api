@@ -7,8 +7,10 @@ import java.util.UUID;
 
 import com.sbproject.deokhugam.comments.dto.CommentCreateRequest;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
+import com.sbproject.deokhugam.comments.dto.CommentUpdateRequest;
 import com.sbproject.deokhugam.comments.entity.Comment;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
+import com.sbproject.deokhugam.comments.exception.CommentNotOwnedException;
 import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.comments.service.CommentService;
@@ -59,6 +61,20 @@ public class CommentServiceImpl implements CommentService {
 		return commentRepository.findByIdAndDeletedAtIsNull(commentId)
 			.map(CommentDto::from)
 			.orElseThrow(() -> new CommentNotFoundException(commentId));
+	}
+
+	@Override
+	@Transactional
+	public CommentDto updateComment(UUID commentId, CommentUpdateRequest request, UUID requestUserId) {
+		Comment comment = commentRepository.findByIdAndDeletedAtIsNull(commentId)
+			.orElseThrow(() -> new CommentNotFoundException(commentId));
+
+		if (!comment.getUser().getId().equals(requestUserId)) {
+			throw new CommentNotOwnedException();
+		}
+
+		comment.setContent(request.content());
+		return CommentDto.from(comment);
 	}
 
 	@Override

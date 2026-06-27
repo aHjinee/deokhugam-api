@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.sbproject.deokhugam.comments.dto.CommentCreateRequest;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
+import com.sbproject.deokhugam.comments.dto.CommentUpdateRequest;
 import com.sbproject.deokhugam.comments.service.CommentService;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,5 +55,14 @@ public class CommentController {
 	@GetMapping("/{commentId}")
 	public ResponseEntity<CommentDto> findComment(@PathVariable UUID commentId) {
 		return ResponseEntity.ok(commentService.findComment(commentId));
+	}
+
+	@PatchMapping("/{commentId}")
+	public ResponseEntity<CommentDto> updateComment(
+		@PathVariable UUID commentId,
+		@RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+		@Valid @RequestBody CommentUpdateRequest request
+	) {
+		return ResponseEntity.ok(commentService.updateComment(commentId, request, requestUserId));
 	}
 }

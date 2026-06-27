@@ -14,8 +14,10 @@ import java.util.UUID;
 
 import com.sbproject.deokhugam.comments.dto.CommentCreateRequest;
 import com.sbproject.deokhugam.comments.dto.CommentDto;
+import com.sbproject.deokhugam.comments.dto.CommentUpdateRequest;
 import com.sbproject.deokhugam.comments.entity.Comment;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
+import com.sbproject.deokhugam.comments.exception.CommentNotOwnedException;
 import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
@@ -163,6 +165,87 @@ class CommentServiceImplTest {
 
 		assertThatThrownBy(() -> commentService.findComment(commentId))
 			.isInstanceOf(CommentNotFoundException.class);
+	}
+
+	@Test
+	void updateCommentChangesContentAndReturnsCommentDto() {
+		UUID commentId = UUID.randomUUID();
+		UUID reviewId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+		User user = User.builder()
+			.id(userId)
+			.nickname("woody")
+			.email("woody@deokhugam.com")
+			.password("password")
+			.build();
+		Review review = Review.builder()
+			.id(reviewId)
+			.user(user)
+			.content("review content")
+			.rating(5)
+			.build();
+		Comment comment = Comment.builder()
+			.id(commentId)
+			.review(review)
+			.user(user)
+			.content("before content")
+			.build();
+		CommentUpdateRequest request = new CommentUpdateRequest("after content");
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.of(comment));
+
+		CommentDto result = commentService.updateComment(commentId, request, userId);
+
+		assertThat(result.getId()).isEqualTo(commentId);
+		assertThat(result.getContent()).isEqualTo("after content");
+		assertThat(comment.getContent()).isEqualTo("after content");
+	}
+
+	@Test
+	void updateCommentThrowsWhenCommentDoesNotExist() {
+		UUID commentId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+		CommentUpdateRequest request = new CommentUpdateRequest("after content");
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> commentService.updateComment(commentId, request, userId))
+			.isInstanceOf(CommentNotFoundException.class);
+	}
+
+	@Test
+	void updateCommentThrowsWhenRequesterIsNotOwner() {
+		UUID commentId = UUID.randomUUID();
+		UUID ownerId = UUID.randomUUID();
+		UUID requesterId = UUID.randomUUID();
+		User owner = User.builder()
+			.id(ownerId)
+			.nickname("woody")
+			.email("woody@deokhugam.com")
+			.password("password")
+			.build();
+		Review review = Review.builder()
+			.id(UUID.randomUUID())
+			.user(owner)
+			.content("review content")
+			.rating(5)
+			.build();
+		Comment comment = Comment.builder()
+			.id(commentId)
+			.review(review)
+			.user(owner)
+			.content("before content")
+			.build();
+		CommentUpdateRequest request = new CommentUpdateRequest("after content");
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.of(comment));
+
+		assertThatThrownBy(() -> commentService.updateComment(commentId, request, requesterId))
+			.isInstanceOf(CommentNotOwnedException.class);
+		assertThat(comment.getContent()).isEqualTo("before content");
 	}
 
 	@Test
