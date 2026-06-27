@@ -15,6 +15,8 @@ public enum ErrorCode {
 
 	//Book
 	BOOK_NOT_FOUND("도서를 찾을 수 없습니다."),
+	ISBN_EXTRACTION_FAILED("ISBN을 추출할 수 없습니다."),
+	OCR_PROCESSING_FAILED("이미지 처리 중 오류가 발생했습니다."),
 
     // Post
     POST_NOT_FOUND("리뷰를 찾을 수 없습니다."),

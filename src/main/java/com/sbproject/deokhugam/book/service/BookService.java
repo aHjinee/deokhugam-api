@@ -22,4 +22,5 @@ public interface BookService {
 
 	BookDto getBook(UUID bookId);
 
+	String extractIsbnFromImage(MultipartFile image);
 }

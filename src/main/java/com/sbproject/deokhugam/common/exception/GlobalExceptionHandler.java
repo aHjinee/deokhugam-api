@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
             case USER_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
             case UNAUTHORIZED_ACCESS -> HttpStatus.FORBIDDEN;
-            case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
+            case INVALID_REQUEST, ISBN_EXTRACTION_FAILED -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

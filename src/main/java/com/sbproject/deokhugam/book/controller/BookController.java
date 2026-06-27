@@ -56,9 +56,9 @@ public class BookController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(created);
 	}
 
-	@PostMapping("/isbn/ocr")
-	public ResponseEntity<Void> ocrBook() {
-		return ResponseEntity.ok().build();
+	@PostMapping(value = "/isbn/ocr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<String> extractIsbnFromImage(@RequestPart(value = "image") MultipartFile image) {
+		return ResponseEntity.ok(bookService.extractIsbnFromImage(image));
 	}
 
 	@GetMapping("/{bookId}")
