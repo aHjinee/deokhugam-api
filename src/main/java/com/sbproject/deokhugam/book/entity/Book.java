@@ -70,4 +70,14 @@ public class Book extends BaseEntity {
   @Column(name = "rating", nullable = false)
   private Double rating;
 
+	public void update(String title, String author, String description,
+	                   String publisher, LocalDate publishedDate, String thumbnailUrl) {
+		this.title = title;
+		this.author = author;
+		this.description = description;
+		this.publisher = publisher;
+		this.publishedDate = publishedDate;
+		this.thumbnailUrl = thumbnailUrl;
+		clearDeletedAt();
+	}
 }

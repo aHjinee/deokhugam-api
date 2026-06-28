@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.jspecify.annotations.NonNull;
@@ -32,6 +33,7 @@ import com.sbproject.deokhugam.book.dto.BookOrderBy;
 import com.sbproject.deokhugam.book.dto.Direction;
 import com.sbproject.deokhugam.book.dto.IsbnResponseDto;
 import com.sbproject.deokhugam.book.entity.Book;
+import com.sbproject.deokhugam.book.exception.BookAlreadyExistsException;
 import com.sbproject.deokhugam.book.exception.BookNotFoundException;
 import com.sbproject.deokhugam.book.exception.IsbnExtractionFailedException;
 import com.sbproject.deokhugam.book.exception.OcrProcessingException;
@@ -148,26 +150,44 @@ public class BookServiceImpl implements BookService {
 	@Override
 	@Transactional
 	public BookDto createBook(@NonNull BookCreateRequest request, MultipartFile thumbnailImage) {
-		Book book = Book.builder()
-		                .isbn(request.isbn())
-		                .title(request.title())
-		                .author(request.author())
-		                .description(request.description())
-		                .publisher(request.publisher())
-		                .publishedDate(request.publishedDate())
-		                .thumbnailUrl(
-							thumbnailImage != null && !thumbnailImage.isEmpty() ? thumbnailImage.getName() : null)
-		                .reviewCount(0)
-		                .totalScore(0)
-		                .rating(0.0)
-		                .build();
-		Book savedBook = bookRepository.save(book);
-		return bookMapper.toBookDto(savedBook);
+		Optional<Book> book = bookRepository.findByIsbn(request.isbn());
+		if (book.isPresent()) {
+			if (book.get().isDeleted()){
+				book.get().update(
+					request.title(),
+					request.author(),
+					request.description(),
+					request.publisher(),
+					request.publishedDate(),
+					thumbnailImage != null && !thumbnailImage.isEmpty() ? thumbnailImage.getName() : null
+				);
+				Book savedBook = bookRepository.save(book.get());
+				return bookMapper.toBookDto(savedBook);
+			}else{
+				throw BookAlreadyExistsException.withIsbn(request.isbn());
+			}
+		}else {
+			Book createBook = Book.builder()
+			                .isbn(request.isbn())
+			                .title(request.title())
+			                .author(request.author())
+			                .description(request.description())
+			                .publisher(request.publisher())
+			                .publishedDate(request.publishedDate())
+			                .thumbnailUrl(
+								thumbnailImage != null && !thumbnailImage.isEmpty() ? thumbnailImage.getName() : null)
+			                .reviewCount(0)
+			                .totalScore(0)
+			                .rating(0.0)
+			                .build();
+			Book savedBook = bookRepository.save(createBook);
+			return bookMapper.toBookDto(savedBook);
+		}
 	}
 
 	@Override
 	public BookDto getBook(UUID bookId) {
-		Book book = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.withId(bookId));
+		Book book = bookRepository.findByIdAndDeletedAtIsNull(bookId).orElseThrow(() -> BookNotFoundException.withId(bookId));
 
 		return bookMapper.toBookDto(book);
 	}
@@ -238,5 +258,19 @@ public class BookServiceImpl implements BookService {
 			log.error("ISBN 추출 중 예외 발생: {}", e.getMessage(), e);
 			throw new OcrProcessingException();
 		}
+	}
+
+	@Override
+	@Transactional
+	public void deleteBook(UUID bookId) {
+		Book book = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.withId(bookId));
+		book.markDeleted();
+	}
+
+	@Override
+	@Transactional
+	public void hardDeleteBook(UUID bookId) {
+		Book book = bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.withId(bookId));
+		bookRepository.delete(book);
 	}
 }
