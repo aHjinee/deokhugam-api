@@ -1,11 +1,13 @@
 package com.sbproject.deokhugam.review.controller;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.dto.ReviewCreateRequest;
 import com.sbproject.deokhugam.review.dto.ReviewDto;
+import com.sbproject.deokhugam.review.dto.ReviewSearchRequest;
 import com.sbproject.deokhugam.review.service.ReviewLikeService;
 import com.sbproject.deokhugam.review.service.ReviewService;
 
@@ -36,22 +40,12 @@ public class ReviewController {
 
 	@GetMapping
 	@Operation(summary = "리뷰 목록 조회", description = "조건에 맞는 리뷰 목록을 페이징 조회합니다.")
-	public ResponseEntity<List<ReviewDto>> getReviewList(
-		@RequestParam(value = "userId", required = false) UUID userId,
-		@RequestParam(value = "bookId", required = false) UUID bookId,
-		@RequestParam(value = "keyword", required = false) String keyword,
-
-		@RequestParam(value = "orderBy", defaultValue = "createdAt") String orderBy,
-		@RequestParam(value = "direction", defaultValue = "DESC") String direction,
-
-		@RequestParam(value = "cursor", required = false) String cursor,
-		@RequestParam(value = "after", required = false) String after, // 보조 커서 (date-time 문자열)
-		@RequestParam(value = "limit", defaultValue = "50") int limit,
-
-		@RequestParam(value = "requestUserId") UUID requestUserId,
-		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
+	public ResponseEntity<SlicePageResponse<ReviewDto>> getReviewList(
+		@RequestHeader(value = "Deokhugam-Request-User-ID", required = false) UUID deokhugamRequestUserId,
+		@ModelAttribute ReviewSearchRequest request
 	) {
-		return null;
+		request.setDeokhugamRequestUserId(deokhugamRequestUserId);
+		return ResponseEntity.ok(reviewService.findAll(request));
 	}
 
 	@PostMapping
@@ -68,7 +62,8 @@ public class ReviewController {
 		@PathVariable("reviewId") UUID reviewId,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
-		return null;
+		ReviewDto reviewDto = reviewService.findById(reviewId, deokhugamRequestUserId);
+		return ResponseEntity.ok(reviewDto);
 	}
 
 	@PatchMapping("/{reviewId}")

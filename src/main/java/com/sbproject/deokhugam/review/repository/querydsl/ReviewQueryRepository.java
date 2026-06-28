@@ -5,5 +5,5 @@ import com.sbproject.deokhugam.review.dto.ReviewDto;
 import com.sbproject.deokhugam.review.dto.ReviewSearchRequest;
 
 public interface ReviewQueryRepository {
-	SlicePageResponse<ReviewDto> searchCursorSorted(ReviewSearchRequest request);
+	SlicePageResponse<ReviewDto> searchReviewsCursorSorted(ReviewSearchRequest request);
 }

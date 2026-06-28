@@ -1,18 +1,34 @@
 package com.sbproject.deokhugam.review.service.Impl;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.sbproject.deokhugam.book.repository.BookRepository;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.dto.ReviewCreateRequest;
 import com.sbproject.deokhugam.review.dto.ReviewDto;
 import com.sbproject.deokhugam.review.dto.ReviewSearchRequest;
 import com.sbproject.deokhugam.review.dto.ReviewUpdateRequest;
+import com.sbproject.deokhugam.review.entity.Review;
+import com.sbproject.deokhugam.review.repository.ReviewLikeRepository;
+import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.review.service.ReviewService;
+import com.sbproject.deokhugam.user.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReviewServiceImpl implements ReviewService {
+	private final ReviewRepository reviewRepository;
+	private final UserRepository userRepository;
+	private final BookRepository bookRepository;
+	private final ReviewLikeRepository reviewLikeRepository;
+
 	@Override
 	public ReviewDto create(ReviewCreateRequest request) {
 		return null;
@@ -24,8 +40,36 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
-	public ReviewDto findById(UUID reviewID, UUID userId) {
-		return null;
+	public ReviewDto findById(UUID reviewId, UUID userId) {
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId));
+
+		// 2. 로그인한 유저의 좋아요 여부 확인
+		boolean likedByMe = false;
+		if (userId != null) {
+			likedByMe = reviewLikeRepository.existsByUser_IdAndReview_Id(userId, reviewId);
+		}
+
+		// 3. Entity -> DTO 변환 및 반환
+		return convertToDto(review, likedByMe);
+	}
+
+	private ReviewDto convertToDto(Review review, boolean likedByMe) {
+		return ReviewDto.builder()
+			.id(review.getId())
+			.bookId(review.getBook().getId())
+			.bookTitle(review.getBook().getTitle())
+			.bookThumbnailUrl(review.getBook().getThumbnailUrl())
+			.userId(review.getUser().getId())
+			.userNickname(review.getUser().getNickname())
+			.content(review.getContent())
+			.rating(review.getRating())
+			.likeCount(review.getLikeCount())
+			.commentCount(review.getCommentCount())
+			.likedByMe(likedByMe)
+			.createdAt(review.getCreatedAt())
+			.updatedAt(review.getUpdatedAt())
+			.build();
 	}
 
 	@Override
@@ -39,7 +83,7 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
-	public SlicePageResponse<ReviewDto> findAll(UUID userID, ReviewSearchRequest request) {
-		return null;
+	public SlicePageResponse<ReviewDto> findAll(ReviewSearchRequest request) {
+		return reviewRepository.searchReviewsCursorSorted(request);
 	}
 }

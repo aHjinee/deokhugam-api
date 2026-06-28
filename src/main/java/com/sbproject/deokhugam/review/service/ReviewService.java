@@ -22,5 +22,5 @@ public interface ReviewService {
 
 	public void deleteSoft(UUID reviewID, UUID userId);
 
-	public SlicePageResponse<ReviewDto> findAll(UUID userID, ReviewSearchRequest request);
+	public SlicePageResponse<ReviewDto> findAll(ReviewSearchRequest request);
 }
