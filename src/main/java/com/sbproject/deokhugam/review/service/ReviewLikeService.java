@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sbproject.deokhugam.review.dto.ReviewLikeDto;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.entity.ReviewLike;
+import com.sbproject.deokhugam.review.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.review.repository.ReviewLikeRepository;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.user.entity.User;
@@ -17,7 +18,9 @@ import com.sbproject.deokhugam.user.exception.UserNotFoundException;
 import com.sbproject.deokhugam.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewLikeService {
@@ -32,11 +35,11 @@ public class ReviewLikeService {
 			throw new IllegalArgumentException("리뷰 ID는 필수 값입니다.");
 		}
 		if (userId == null) {
-			throw new IllegalArgumentException("유저 ID(userId)는 필수 값입니다.");
+			throw new IllegalArgumentException("요청자 아이디 누락");
 		}
 
 		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId));
+			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
 
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> UserNotFoundException.withId(userId));
