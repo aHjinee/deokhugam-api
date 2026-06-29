@@ -21,6 +21,7 @@ import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.dto.ReviewCreateRequest;
 import com.sbproject.deokhugam.review.dto.ReviewDto;
 import com.sbproject.deokhugam.review.dto.ReviewSearchRequest;
+import com.sbproject.deokhugam.review.dto.ReviewUpdateRequest;
 import com.sbproject.deokhugam.review.service.ReviewLikeService;
 import com.sbproject.deokhugam.review.service.ReviewService;
 
@@ -70,7 +71,7 @@ public class ReviewController {
 	@Operation(summary = "리뷰 수정", description = "기존에 작성한 리뷰의 본문 및 평점을 수정합니다.")
 	public ResponseEntity<ReviewDto> updateReview(
 		@PathVariable("reviewId") UUID reviewId,
-		@Valid @RequestBody ReviewCreateRequest request, // 상황에 따라 UpdateRequest 분리 가능
+		@Valid @RequestBody ReviewUpdateRequest request,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
 		return null;
