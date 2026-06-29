@@ -54,4 +54,24 @@ public class Review extends BaseEntity {
 	@Column(name = "comment_count", nullable = false)
 	@Builder.Default
 	private Integer commentCount = 0;
+
+	public void increaseLikeCount() {
+		this.likeCount += 1;
+	}
+
+	public void decreaseLikeCount() {
+		if (this.likeCount > 0) {
+			this.likeCount -= 1;
+		}
+	}
+
+	public void increaseCommentCount() {
+		this.commentCount += 1;
+	}
+
+	public void decreaseCommentCount() {
+		if (this.commentCount > 0) {
+			this.commentCount -= 1;
+		}
+	}
 }

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.dto.ReviewCreateRequest;
 import com.sbproject.deokhugam.review.dto.ReviewDto;
+import com.sbproject.deokhugam.review.dto.ReviewLikeDto;
 import com.sbproject.deokhugam.review.dto.ReviewSearchRequest;
 import com.sbproject.deokhugam.review.dto.ReviewUpdateRequest;
 import com.sbproject.deokhugam.review.service.ReviewLikeService;
@@ -29,7 +30,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
@@ -84,7 +87,8 @@ public class ReviewController {
 		@PathVariable("reviewId") UUID reviewId,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
-		return null;
+		reviewService.deleteSoft(reviewId, deokhugamRequestUserId);
+		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping("/{reviewId}/hard")
@@ -93,15 +97,17 @@ public class ReviewController {
 		@PathVariable("reviewId") UUID reviewId,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
-		return null;
+		reviewService.delete(reviewId, deokhugamRequestUserId);
+		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{reviewId}/like")
 	@Operation(summary = "리뷰 좋아요", description = "특정 리뷰에 좋아요를 반영하거나 토글 처리합니다.")
-	public ResponseEntity<Void> toggleReviewLike(
+	public ResponseEntity<ReviewLikeDto> toggleReviewLike(
 		@PathVariable("reviewId") UUID reviewId,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
-		return null;
+		ReviewLikeDto reviewLikeDto = reviewLikeService.toggleLike(reviewId, deokhugamRequestUserId);
+		return ResponseEntity.ok(reviewLikeDto);
 	}
 }
