@@ -34,6 +34,7 @@ public enum ErrorCode {
 
     //Notification
     NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다"),
+    NOTIFICATION_ACCESS_DENIED("알림을 수정할 권한이없습니다"),
 
     // File
     FILE_SAVE_FAILED("파일 저장에 실패했습니다."),
