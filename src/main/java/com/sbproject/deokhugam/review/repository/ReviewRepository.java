@@ -14,6 +14,6 @@ import jakarta.annotation.Nullable;
 public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewQueryRepository {
 
 	@Override
-	@EntityGraph(attributePaths = {"users", "books"})
+	@EntityGraph(attributePaths = {"user", "book"})
 	Optional<Review> findById(@Nullable UUID id);
 }
