@@ -2,8 +2,11 @@ package com.sbproject.deokhugam.notification.service.impl;
 
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.notification.dto.NotificationDto;
+import com.sbproject.deokhugam.notification.dto.NotificationUpdateRequest;
 import com.sbproject.deokhugam.notification.entity.Notification;
 import com.sbproject.deokhugam.notification.entity.NotificationType;
+import com.sbproject.deokhugam.notification.exception.NotificationAccessDeniedException;
+import com.sbproject.deokhugam.notification.exception.NotificationNotFoundException;
 import com.sbproject.deokhugam.notification.mapper.NotificationMapper;
 import com.sbproject.deokhugam.notification.repository.NotificationQueryRepository;
 import com.sbproject.deokhugam.notification.repository.NotificationRepository;
@@ -17,6 +20,7 @@ import com.sbproject.deokhugam.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,6 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public SlicePageResponse<NotificationDto> findAllByUserId(UUID userId, String cursor, Instant after, int limit) {
         UUID cursorId = null;
@@ -66,13 +71,45 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
     }
 
+    @Transactional
+    @Override
+    public NotificationDto updateReadStatus(UUID notificationId, UUID deokhugamRequestUserId, NotificationUpdateRequest request) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> NotificationNotFoundException.withId(notificationId));
+
+        if (!notification.getUser().getId().equals(deokhugamRequestUserId)) {
+            throw NotificationAccessDeniedException.withuserId(deokhugamRequestUserId);
+        }
+
+        if (request.isConfirmed()) {
+            notification.confirm();
+        }
+
+        return notificationMapper.toDto(notification);
+    }
+
+    @Transactional
+    @Override
+    public void updateReadAllStatus(UUID deokhugamRequestUserId) {
+        User user = userRepository.findById(deokhugamRequestUserId)
+                .orElseThrow(() -> UserNotFoundException.withId(deokhugamRequestUserId));
+
+        List<Notification> notifications = notificationRepository.findByUserIdAndConfirmedFalse(user.getId());
+        for (Notification notification : notifications) {
+            notification.confirm();
+        }
+    }
+
+    @Transactional
     @Override
     public NotificationDto create(NotificationType type, UUID receiverId, UUID actorId, UUID reviewId) {
 
         String message = createMessage(type, actorId);
 
-        User receiveUser = userRepository.findById(receiverId).orElseThrow(() -> UserNotFoundException.withId(receiverId));
-        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
+        User receiveUser = userRepository.findById(receiverId)
+                .orElseThrow(() -> UserNotFoundException.withId(receiverId));
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
 
         Notification notification = Notification.builder()
                 .type(type)
@@ -106,4 +143,6 @@ public class NotificationServiceImpl implements NotificationService {
             case POPULAR_ALL_TIME -> "회원님의 리뷰가 전체 인기 리뷰 TOP10에 선정되었습니다.";
         };
     }
+
+
 }
