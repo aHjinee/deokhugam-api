@@ -5,10 +5,7 @@ import com.fasterxml.uuid.Generators;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,6 +15,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Builder
 @Table(name = "notifications")
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})

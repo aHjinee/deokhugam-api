@@ -32,6 +32,9 @@ public enum ErrorCode {
 	REVIEW_NOT_OWNED("본인이 작성한 리뷰만 수정/삭제할 수 있습니다."),
 	REVIEW_ALREADY_EXISTS("리뷰가 이미 존재합니다."),
 
+    //Notification
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다"),
+
     // File
     FILE_SAVE_FAILED("파일 저장에 실패했습니다."),
     FILE_DELETE_FAILED("파일 삭제에 실패했습니다."),
