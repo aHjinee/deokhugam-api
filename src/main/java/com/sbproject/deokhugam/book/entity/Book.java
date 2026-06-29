@@ -70,6 +70,11 @@ public class Book extends BaseEntity {
   @Column(name = "rating", nullable = false)
   private Double rating;
 
+  public void addReviewRating(Integer newRating) {
+    this.reviewCount += 1;
+    this.totalScore += newRating;
+    this.rating = Math.round(((double) this.totalScore / this.reviewCount) * 10) / 10.0;
+  }
 	public void update(String title, String author, String description,
 	                   String publisher, LocalDate publishedDate, String thumbnailUrl) {
 		this.title = title;
