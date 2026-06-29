@@ -1,4 +1,6 @@
 package com.sbproject.deokhugam.review.entity;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sbproject.deokhugam.common.entity.BaseEntity;
 import com.sbproject.deokhugam.book.entity.Book;
@@ -10,6 +12,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

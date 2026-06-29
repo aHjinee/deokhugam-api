@@ -70,6 +70,12 @@ dependencies {
 
     // .env 파일 로드
     implementation "me.paulschwarz:spring-dotenv:4.0.0"
+
+    // https://github.com/googleapis/java-genai
+    implementation "com.google.genai:google-genai:1.60.0"
+
+    // 썸네일 생성 라이브러리
+    implementation 'net.coobird:thumbnailator:0.4.21'
 }
 
 tasks.named('test') {
