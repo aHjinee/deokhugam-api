@@ -27,89 +27,89 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends BaseEntity {
 
-  @Size(max = 50)
-  @NotNull
-  @Column(name = "isbn", nullable = false, length = 50)
-  private String isbn;
+	@Size(max = 50)
+	@NotNull
+	@Column(name = "isbn", nullable = false, length = 50)
+	private String isbn;
 
-  @Size(max = 255)
-  @NotNull
-  @Column(name = "title", nullable = false)
-  private String title;
+	@Size(max = 255)
+	@NotNull
+	@Column(name = "title", nullable = false)
+	private String title;
 
-  @Size(max = 255)
-  @NotNull
-  @Column(name = "author", nullable = false)
-  private String author;
+	@Size(max = 255)
+	@NotNull
+	@Column(name = "author", nullable = false)
+	private String author;
 
-  @NotNull
-  @Column(name = "description", nullable = false, length = Integer.MAX_VALUE)
-  private String description;
+	@NotNull
+	@Column(name = "description", nullable = false, length = Integer.MAX_VALUE)
+	private String description;
 
-  @Size(max = 100)
-  @NotNull
-  @Column(name = "publisher", nullable = false, length = 100)
-  private String publisher;
+	@Size(max = 100)
+	@NotNull
+	@Column(name = "publisher", nullable = false, length = 100)
+	private String publisher;
 
-  @NotNull
-  @Column(name = "published_date", nullable = false)
-  private LocalDate publishedDate;
+	@NotNull
+	@Column(name = "published_date", nullable = false)
+	private LocalDate publishedDate;
 
-  @Column(name = "thumbnail_url", length = Integer.MAX_VALUE)
-  private String thumbnailUrl;
+	@Column(name = "thumbnail_url", length = Integer.MAX_VALUE)
+	private String thumbnailUrl;
 
-  @NotNull
-  @ColumnDefault("0")
-  @Column(name = "review_count", nullable = false)
-  private Integer reviewCount;
+	@NotNull
+	@ColumnDefault("0")
+	@Column(name = "review_count", nullable = false)
+	private Integer reviewCount;
 
-  @NotNull
-  @ColumnDefault("0")
-  @Column(name = "total_score", nullable = false)
-  private Integer totalScore;
+	@NotNull
+	@ColumnDefault("0")
+	@Column(name = "total_score", nullable = false)
+	private Integer totalScore;
 
-  @NotNull
-  @ColumnDefault("0.0")
-  @Column(name = "rating", nullable = false)
-  private Double rating;
+	@NotNull
+	@ColumnDefault("0.0")
+	@Column(name = "rating", nullable = false)
+	private Double rating;
 
-  public void update(String title, String author, String description,
-      String publisher, LocalDate publishedDate, String thumbnailUrl) {
-    this.title = title;
-    this.author = author;
-    this.description = description;
-    this.publisher = publisher;
-    this.publishedDate = publishedDate;
-    this.thumbnailUrl = thumbnailUrl;
-    clearDeletedAt();
-  }
+	public void update(String title, String author, String description,
+	                   String publisher, LocalDate publishedDate, String thumbnailUrl) {
+		this.title = title;
+		this.author = author;
+		this.description = description;
+		this.publisher = publisher;
+		this.publishedDate = publishedDate;
+		this.thumbnailUrl = thumbnailUrl;
+		clearDeletedAt();
+	}
 
-  public void addReviewRating(Integer newRating) {
-    this.reviewCount += 1;
-    this.totalScore += newRating;
-    this.calculateAverage();
-  }
+	public void addReviewRating(Integer newRating) {
+		this.reviewCount += 1;
+		this.totalScore += newRating;
+		this.calculateAverage();
+	}
 
-  public void updateReviewRating(Integer oldRating, Integer newRating) {
-    this.totalScore = this.totalScore - oldRating + newRating;
-    this.calculateAverage();
-  }
+	public void updateReviewRating(Integer oldRating, Integer newRating) {
+		this.totalScore = this.totalScore - oldRating + newRating;
+		this.calculateAverage();
+	}
 
-  public void deleteReviewRating(Integer rating) {
-    if (this.reviewCount > 0) {
-      this.reviewCount -= 1;
-      this.totalScore -= rating;
-    }
-    this.calculateAverage();
-  }
+	public void deleteReviewRating(Integer rating) {
+		if (this.reviewCount > 0) {
+			this.reviewCount -= 1;
+			this.totalScore -= rating;
+		}
+		this.calculateAverage();
+	}
 
-  private void calculateAverage() {
-    if (this.reviewCount <= 0) {
-      this.reviewCount = 0;
-      this.totalScore = 0;
-      this.rating = 0.0;
-    } else {
-      this.rating = Math.round(((double) this.totalScore / this.reviewCount) * 10) / 10.0;
-    }
-  }
+	private void calculateAverage() {
+		if (this.reviewCount <= 0) {
+			this.reviewCount = 0;
+			this.totalScore = 0;
+			this.rating = 0.0;
+		} else {
+			this.rating = Math.round(((double)this.totalScore / this.reviewCount) * 10) / 10.0;
+		}
+	}
 }
