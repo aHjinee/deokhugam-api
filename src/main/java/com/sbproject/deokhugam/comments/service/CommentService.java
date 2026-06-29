@@ -16,6 +16,10 @@ public interface CommentService {
 
 	CommentDto updateComment(UUID commentId, CommentUpdateRequest request, UUID requestUserId);
 
+	void deleteComment(UUID commentId, UUID requestUserId);
+
+	void hardDeleteComment(UUID commentId, UUID requestUserId);
+
 	SlicePageResponse<CommentDto> findComments(
 		UUID reviewId,
 		String direction,

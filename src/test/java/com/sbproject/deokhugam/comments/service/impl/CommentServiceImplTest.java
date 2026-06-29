@@ -249,6 +249,163 @@ class CommentServiceImplTest {
 	}
 
 	@Test
+	void deleteCommentMarksDeletedAndDecreasesReviewCommentCount() {
+		UUID commentId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+		User user = User.builder()
+			.id(userId)
+			.nickname("woody")
+			.email("woody@deokhugam.com")
+			.password("password")
+			.build();
+		Review review = Review.builder()
+			.id(UUID.randomUUID())
+			.user(user)
+			.content("review content")
+			.rating(5)
+			.commentCount(1)
+			.build();
+		Comment comment = Comment.builder()
+			.id(commentId)
+			.review(review)
+			.user(user)
+			.content("comment content")
+			.build();
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.of(comment));
+
+		commentService.deleteComment(commentId, userId);
+
+		assertThat(comment.getDeletedAt()).isNotNull();
+		assertThat(review.getCommentCount()).isEqualTo(0);
+	}
+
+	@Test
+	void deleteCommentThrowsWhenCommentDoesNotExist() {
+		UUID commentId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> commentService.deleteComment(commentId, userId))
+			.isInstanceOf(CommentNotFoundException.class);
+	}
+
+	@Test
+	void deleteCommentThrowsWhenRequesterIsNotOwner() {
+		UUID commentId = UUID.randomUUID();
+		UUID ownerId = UUID.randomUUID();
+		UUID requesterId = UUID.randomUUID();
+		User owner = User.builder()
+			.id(ownerId)
+			.nickname("woody")
+			.email("woody@deokhugam.com")
+			.password("password")
+			.build();
+		Review review = Review.builder()
+			.id(UUID.randomUUID())
+			.user(owner)
+			.content("review content")
+			.rating(5)
+			.commentCount(1)
+			.build();
+		Comment comment = Comment.builder()
+			.id(commentId)
+			.review(review)
+			.user(owner)
+			.content("comment content")
+			.build();
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.of(comment));
+
+		assertThatThrownBy(() -> commentService.deleteComment(commentId, requesterId))
+			.isInstanceOf(CommentNotOwnedException.class);
+		assertThat(comment.getDeletedAt()).isNull();
+		assertThat(review.getCommentCount()).isEqualTo(1);
+	}
+
+	@Test
+	void hardDeleteCommentDeletesCommentAndDecreasesReviewCommentCount() {
+		UUID commentId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+		User user = User.builder()
+			.id(userId)
+			.nickname("woody")
+			.email("woody@deokhugam.com")
+			.password("password")
+			.build();
+		Review review = Review.builder()
+			.id(UUID.randomUUID())
+			.user(user)
+			.content("review content")
+			.rating(5)
+			.commentCount(1)
+			.build();
+		Comment comment = Comment.builder()
+			.id(commentId)
+			.review(review)
+			.user(user)
+			.content("comment content")
+			.build();
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.of(comment));
+
+		commentService.hardDeleteComment(commentId, userId);
+
+		verify(commentRepository).delete(comment);
+		assertThat(review.getCommentCount()).isEqualTo(0);
+	}
+
+	@Test
+	void hardDeleteCommentThrowsWhenCommentDoesNotExist() {
+		UUID commentId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> commentService.hardDeleteComment(commentId, userId))
+			.isInstanceOf(CommentNotFoundException.class);
+	}
+
+	@Test
+	void hardDeleteCommentThrowsWhenRequesterIsNotOwner() {
+		UUID commentId = UUID.randomUUID();
+		UUID ownerId = UUID.randomUUID();
+		UUID requesterId = UUID.randomUUID();
+		User owner = User.builder()
+			.id(ownerId)
+			.nickname("woody")
+			.email("woody@deokhugam.com")
+			.password("password")
+			.build();
+		Review review = Review.builder()
+			.id(UUID.randomUUID())
+			.user(owner)
+			.content("review content")
+			.rating(5)
+			.commentCount(1)
+			.build();
+		Comment comment = Comment.builder()
+			.id(commentId)
+			.review(review)
+			.user(owner)
+			.content("comment content")
+			.build();
+
+		when(commentRepository.findByIdAndDeletedAtIsNull(commentId))
+			.thenReturn(Optional.of(comment));
+
+		assertThatThrownBy(() -> commentService.hardDeleteComment(commentId, requesterId))
+			.isInstanceOf(CommentNotOwnedException.class);
+		assertThat(review.getCommentCount()).isEqualTo(1);
+	}
+
+	@Test
 	void findCommentsReturnsCursorPage() {
 		UUID reviewId = UUID.randomUUID();
 		User user = User.builder()

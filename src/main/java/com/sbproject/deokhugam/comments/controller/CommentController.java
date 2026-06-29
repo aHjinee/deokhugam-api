@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,5 +65,23 @@ public class CommentController {
 		@Valid @RequestBody CommentUpdateRequest request
 	) {
 		return ResponseEntity.ok(commentService.updateComment(commentId, request, requestUserId));
+	}
+
+	@DeleteMapping("/{commentId}")
+	public ResponseEntity<Void> deleteComment(
+		@PathVariable UUID commentId,
+		@RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+	) {
+		commentService.deleteComment(commentId, requestUserId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@DeleteMapping("/{commentId}/hard")
+	public ResponseEntity<Void> hardDeleteComment(
+		@PathVariable UUID commentId,
+		@RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+	) {
+		commentService.hardDeleteComment(commentId, requestUserId);
+		return ResponseEntity.noContent().build();
 	}
 }
