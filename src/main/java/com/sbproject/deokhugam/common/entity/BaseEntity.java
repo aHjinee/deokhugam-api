@@ -54,4 +54,8 @@ public abstract class BaseEntity {
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
+
+	public void clearDeletedAt() {
+		this.deletedAt = null;
+	}
 }
