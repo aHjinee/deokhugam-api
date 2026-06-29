@@ -45,8 +45,7 @@ public class BookServiceImpl implements BookService {
 
 	@Override
 	public SlicePageResponse<BookDto> searchBooks(String keyword, BookOrderBy orderBy, Direction direction,
-	                                              String cursor,
-	                                              Instant after, int limit) {
+	                                              String cursor, Instant after, int limit) {
 		long totalElements = (keyword == null || keyword.isBlank())
 			? bookRepository.count()
 			: bookRepository.countByKeyword(keyword);
