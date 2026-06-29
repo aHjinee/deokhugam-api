@@ -1,5 +1,6 @@
 package com.sbproject.deokhugam.review.service.Impl;
 
+import java.time.Instant;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -51,7 +52,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 		Integer rating = request.getRating();
 
-		// 도서(Book)의 리뷰 개수 및 평균 평점 업데이트 (도서 엔티티의 비즈니스 메서드 호출)
 		book.addReviewRating(rating);
 
 		Review review = Review.builder()
@@ -69,23 +69,100 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
-	public ReviewDto update(UUID reviewID, UUID userId, ReviewUpdateRequest request) {
-		return null;
+	@Transactional
+	public ReviewDto update(UUID reviewId, UUID userId, ReviewUpdateRequest request) {
+		if (userId == null) {
+			throw new IllegalArgumentException("요청자 ID 누락");
+		}
+
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId));
+
+		// 권한 체크: 작성자 본인 확인
+		if (!review.getUser().getId().equals(userId)) {
+			throw new IllegalStateException("해당 리뷰를 수정할 권한이 없습니다.");
+		}
+
+		Integer oldRating = review.getRating();
+		Integer newRating = request.getRating();
+
+		if (newRating != null && !oldRating.equals(newRating)) {
+			review.getBook().updateReviewRating(oldRating, newRating);
+			review.setRating(newRating);
+		}
+
+		if (request.getContent() != null) {
+			review.setContent(request.getContent());
+		}
+
+		boolean likedByMe = reviewLikeRepository.existsByUser_IdAndReview_Id(userId, reviewId);
+
+		return convertToDto(review, likedByMe);
 	}
 
 	@Override
 	public ReviewDto findById(UUID reviewId, UUID userId) {
+		if (userId == null) {
+			throw new IllegalArgumentException("요청자 ID 누락");
+		}
+
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId));
 
-		// 2. 로그인한 유저의 좋아요 여부 확인
+		if (review.getDeletedAt() != null) {
+			throw new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId);
+		}
+
 		boolean likedByMe = false;
 		if (userId != null) {
 			likedByMe = reviewLikeRepository.existsByUser_IdAndReview_Id(userId, reviewId);
 		}
 
-		// 3. Entity -> DTO 변환 및 반환
 		return convertToDto(review, likedByMe);
+	}
+
+
+	@Override
+	@Transactional
+	public void delete(UUID reviewId, UUID userId) {
+		if (userId == null) {
+			throw new IllegalArgumentException("요청자 ID 누락");
+		}
+
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId));
+
+		if (!review.getUser().getId().equals(userId)) {
+			throw new IllegalStateException("해당 리뷰를 삭제할 권한이 없습니다.");
+		}
+
+		review.getBook().deleteReviewRating(review.getRating());
+
+		reviewRepository.delete(review);
+	}
+
+	@Override
+	@Transactional
+	public void deleteSoft(UUID reviewId, UUID userId) {
+		if (userId == null) {
+			throw new IllegalArgumentException("요청자 ID 누락");
+		}
+
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new NoSuchElementException("해당 리뷰를 찾을 수 없습니다. id: " + reviewId));
+
+		if (!review.getUser().getId().equals(userId)) {
+			throw new IllegalStateException("해당 리뷰를 삭제할 권한이 없습니다.");
+		}
+
+		review.getBook().deleteReviewRating(review.getRating());
+
+		review.markDeleted();
+	}
+
+	@Override
+	public SlicePageResponse<ReviewDto> findAll(ReviewSearchRequest request) {
+		return reviewRepository.searchReviewsCursorSorted(request);
 	}
 
 	private ReviewDto convertToDto(Review review, boolean likedByMe) {
@@ -104,20 +181,5 @@ public class ReviewServiceImpl implements ReviewService {
 			.createdAt(review.getCreatedAt())
 			.updatedAt(review.getUpdatedAt())
 			.build();
-	}
-
-	@Override
-	public void delete(UUID reviewID, UUID userId) {
-
-	}
-
-	@Override
-	public void deleteSoft(UUID reviewID, UUID userId) {
-
-	}
-
-	@Override
-	public SlicePageResponse<ReviewDto> findAll(ReviewSearchRequest request) {
-		return reviewRepository.searchReviewsCursorSorted(request);
 	}
 }

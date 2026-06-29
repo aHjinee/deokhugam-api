@@ -12,15 +12,15 @@ spring:
   data:
     mongodb:
       uri: mongodb://local:local1234@localhost:27017/deokhugam?authSource=admin
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema.sql
-      data-locations: classpath:data.sql
-
 #  sql:
-#      init:
-#        mode: never
+#    init:
+#      mode: always
+#      schema-locations: classpath:schema.sql
+#      data-locations: classpath:data.sql
+
+  sql:
+      init:
+        mode: never
   jpa:
     hibernate:
       ddl-auto: validate

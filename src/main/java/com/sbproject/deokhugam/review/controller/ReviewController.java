@@ -74,7 +74,8 @@ public class ReviewController {
 		@Valid @RequestBody ReviewUpdateRequest request,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
-		return null;
+		ReviewDto reviewDto = reviewService.update(reviewId, deokhugamRequestUserId, request);
+		return ResponseEntity.ok(reviewDto);
 	}
 
 	@DeleteMapping("/{reviewId}")
