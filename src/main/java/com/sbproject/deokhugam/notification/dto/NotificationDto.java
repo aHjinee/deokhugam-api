@@ -1,6 +1,5 @@
 package com.sbproject.deokhugam.notification.dto;
 
-import com.sbproject.deokhugam.notification.entity.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

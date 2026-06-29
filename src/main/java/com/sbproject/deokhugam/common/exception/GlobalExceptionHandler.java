@@ -35,11 +35,12 @@ public class GlobalExceptionHandler {
     private HttpStatus parseHttpStatus(BaseException e) {
         ErrorCode code = e.getErrorCode();
         return switch (code) {
-            case USER_NOT_FOUND, POST_NOT_FOUND, COMMENT_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case USER_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+            case USER_NOT_FOUND, POST_NOT_FOUND, COMMENT_NOT_FOUND, BOOK_NOT_FOUND,
+                 NAVER_BOOK_NOT_FOUND, REVIEW_NOT_FOUND, NOTIFICATION_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case USER_ALREADY_EXISTS, BOOK_ALREADY_EXISTS, REVIEW_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
-            case UNAUTHORIZED_ACCESS, COMMENT_NOT_OWNED -> HttpStatus.FORBIDDEN;
-            case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
+            case UNAUTHORIZED_ACCESS, COMMENT_NOT_OWNED, REVIEW_NOT_OWNED -> HttpStatus.FORBIDDEN;
+            case INVALID_REQUEST, ISBN_EXTRACTION_FAILED -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

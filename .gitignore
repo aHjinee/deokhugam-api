@@ -55,6 +55,7 @@ replay_pid*
 # =========================
 uploads/
 .blog/
+.deokhugam/
 my_dir/
 
 # =========================
