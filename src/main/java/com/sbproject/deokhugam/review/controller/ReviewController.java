@@ -53,7 +53,7 @@ public class ReviewController {
 	public ResponseEntity<ReviewDto> createReview(
 		@Valid @RequestBody ReviewCreateRequest request
 	) {
-		return null;
+		return ResponseEntity.ok(reviewService.create(request));
 	}
 
 	@GetMapping("/{reviewId}")

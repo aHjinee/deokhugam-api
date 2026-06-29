@@ -31,7 +31,17 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	public ReviewDto create(ReviewCreateRequest request) {
-		return null;
+		if (request.getBookId() == null) {
+			throw new NoSuchElementException("Book id is null");
+		}
+
+		if (request.getUserId() == null) {
+			throw new NoSuchElementException("User id is null");
+		}
+
+		Review review = new Review()
+
+		return
 	}
 
 	@Override
