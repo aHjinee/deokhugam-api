@@ -45,6 +45,14 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 		// 1. Soft Delete 필터링
 		where.and(r.deletedAt.isNull());
 
+		if (req.getUserId() != null) {
+			where.and(r.user.id.eq(req.getUserId()));
+		}
+
+		if (req.getBookId() != null) {
+			where.and(r.book.id.eq(req.getBookId()));
+		}
+
 		// 2. Keyword 동적 검색 (도서명 OR 리뷰어 닉네임 OR 리뷰 내용)
 		if (req.getKeyword() != null && !req.getKeyword().isBlank()) {
 			where.and(
