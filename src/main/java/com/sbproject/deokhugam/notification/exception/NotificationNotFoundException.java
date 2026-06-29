@@ -1,7 +1,6 @@
 package com.sbproject.deokhugam.notification.exception;
 
 import com.sbproject.deokhugam.common.exception.ErrorCode;
-import com.sbproject.deokhugam.user.exception.UserException;
 
 import java.util.UUID;
 
