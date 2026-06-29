@@ -28,4 +28,18 @@ import java.util.List;
 @Profile("prod")
 public class FileStorageS3 implements FileStorage {
 
+	@Override
+	public String save(MultipartFile file) {
+		return "";
+	}
+
+	@Override
+	public void delete(String storageKey) {
+
+	}
+
+	@Override
+	public String getUrl(String storageKey) {
+		return "";
+	}
 }

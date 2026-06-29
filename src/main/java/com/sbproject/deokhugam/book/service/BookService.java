@@ -8,8 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sbproject.deokhugam.book.dto.BookCreateRequest;
 import com.sbproject.deokhugam.book.dto.BookDto;
 import com.sbproject.deokhugam.book.dto.BookOrderBy;
-import com.sbproject.deokhugam.book.dto.CursorPageResponseBookDto;
+import com.sbproject.deokhugam.book.dto.BookUpdateRequest;
 import com.sbproject.deokhugam.book.dto.Direction;
+import com.sbproject.deokhugam.book.dto.NaverBookDto;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 
 import jakarta.validation.Valid;
@@ -25,6 +26,10 @@ public interface BookService {
 	String extractIsbnFromImage(MultipartFile image);
 
 	void deleteBook(UUID bookId);
+
+	BookDto updateBook(UUID bookId, @Valid BookUpdateRequest request, MultipartFile thumbnailImage);
+
+	NaverBookDto getBookInfo(String isbn);
 
 	void hardDeleteBook(UUID bookId);
 }
