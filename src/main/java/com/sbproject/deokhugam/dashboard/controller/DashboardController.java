@@ -11,9 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.validation.annotation.Validated;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
+@Validated
 public class DashboardController {
 
   private final DashboardService dashboardService;
@@ -22,7 +27,8 @@ public class DashboardController {
   public ResponseEntity<PopularBooksResponse> getPopularBooks(
       @RequestParam(defaultValue = "ALL_TIME") String period,
       @RequestParam(defaultValue = "ASC") String direction,
-      @RequestParam(defaultValue = "4") int limit) {
+      @RequestParam(defaultValue = "4")
+	  @Min(1) @Max(4) int limit) {
     return ResponseEntity.ok(dashboardService.getPopularBooks(period, direction, limit));
   }
 
@@ -30,14 +36,16 @@ public class DashboardController {
   public ResponseEntity<PopularReviewsResponse> getPopularReviews(
       @RequestParam(defaultValue = "ALL_TIME") String period,
       @RequestParam(defaultValue = "DESC") String direction,
-      @RequestParam(defaultValue = "20") int limit) {
+      @RequestParam(defaultValue = "20")
+	  @Min(1) @Max(20) int limit) {
     return ResponseEntity.ok(dashboardService.getPopularReviews(period, direction, limit));
   }
 
   @GetMapping("/users/power")
   public ResponseEntity<PowerUsersResponse> getPowerUsers(
       @RequestParam(defaultValue = "ASC") String direction,
-      @RequestParam(defaultValue = "10") int limit) {
-    return ResponseEntity.ok(dashboardService.getPowerUsers(direction, limit));
+      @RequestParam(defaultValue = "10")
+	  @Min(1) @Max(10) int limit){
+    return ResponseEntity.ok(dashboardService.getPowerUsers("ALL_TIME", direction, limit));
   }
 }

@@ -10,5 +10,5 @@ public interface DashboardService {
 
   PopularReviewsResponse getPopularReviews(String period, String direction, int limit);
 
-  PowerUsersResponse getPowerUsers(String direction, int limit);
+  PowerUsersResponse getPowerUsers(String period, String direction, int limit);
 }

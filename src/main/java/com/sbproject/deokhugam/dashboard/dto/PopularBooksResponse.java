@@ -12,9 +12,9 @@ public class PopularBooksResponse {
 
   private final PeriodType periodType;
   private final Instant periodDate;
-  private final List<PopularBooksDocument.Ranking> content;
+  private final List<PopularBooksRankingResponse> content;
 
-  public PopularBooksResponse(PopularBooksDocument doc, List<PopularBooksDocument.Ranking> rankings) {
+  public PopularBooksResponse(PopularBooksDocument doc, List<PopularBooksRankingResponse> rankings) {
     this.periodType = doc.getPeriodType();
     this.periodDate = doc.getPeriodDate();
     this.content = rankings;

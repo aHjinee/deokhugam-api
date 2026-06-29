@@ -12,9 +12,9 @@ public class PowerUsersResponse {
 
   private final PeriodType periodType;
   private final Instant periodDate;
-  private final List<PowerUsersDocument.Ranking> content;
+	private final List<PowerUsersRankingResponse> content;
 
-  public PowerUsersResponse(PowerUsersDocument doc, List<PowerUsersDocument.Ranking> rankings) {
+  public PowerUsersResponse(PowerUsersDocument doc, List<PowerUsersRankingResponse> rankings) {
     this.periodType = doc.getPeriodType();
     this.periodDate = doc.getPeriodDate();
     this.content = rankings;
