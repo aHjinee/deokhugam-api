@@ -16,4 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewQue
 	@Override
 	@EntityGraph(attributePaths = {"user", "book"})
 	Optional<Review> findById(@Nullable UUID id);
+
+	boolean existsByUserIdAndBookIdAndDeletedAtIsNotNull(UUID userId, UUID bookId);
 }
