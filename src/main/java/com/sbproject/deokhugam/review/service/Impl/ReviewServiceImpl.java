@@ -138,7 +138,9 @@ public class ReviewServiceImpl implements ReviewService {
 			throw new IllegalStateException("해당 리뷰를 삭제할 권한이 없습니다.");
 		}
 
-		review.getBook().deleteReviewRating(review.getRating());
+		if(review.getDeletedAt() == null) {
+			review.getBook().deleteReviewRating(review.getRating());
+		}
 
 		reviewRepository.delete(review);
 	}
