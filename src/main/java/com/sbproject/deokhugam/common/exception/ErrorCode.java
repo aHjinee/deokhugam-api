@@ -25,6 +25,7 @@ public enum ErrorCode {
 
     // Comment
     COMMENT_NOT_FOUND("댓글을 찾을 수 없습니다."),
+    COMMENT_NOT_OWNED("본인이 작성한 댓글만 수정/삭제할 수 있습니다."),
 
     // File
     FILE_SAVE_FAILED("파일 저장에 실패했습니다."),
