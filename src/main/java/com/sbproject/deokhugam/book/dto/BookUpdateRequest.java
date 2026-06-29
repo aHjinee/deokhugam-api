@@ -2,13 +2,11 @@ package com.sbproject.deokhugam.book.dto;
 
 import java.time.LocalDate;
 
-import org.hibernate.validator.constraints.ISBN;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.Size;
 
-public record BookCreateRequest(
-
+public record BookUpdateRequest(
 	@Size(min = 1, max = 50)
 	String title,
 
@@ -22,9 +20,6 @@ public record BookCreateRequest(
 	String publisher,
 
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
-	LocalDate publishedDate,
-
-	@ISBN
-	String isbn
+	LocalDate publishedDate
 ) {
 }

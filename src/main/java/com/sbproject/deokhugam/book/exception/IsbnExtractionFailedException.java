@@ -1,7 +1,5 @@
 package com.sbproject.deokhugam.book.exception;
 
-import java.util.UUID;
-
 import com.sbproject.deokhugam.common.exception.ErrorCode;
 
 public class IsbnExtractionFailedException extends BookException {

@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sbproject.deokhugam.book.dto.BookCreateRequest;
 import com.sbproject.deokhugam.book.dto.BookDto;
 import com.sbproject.deokhugam.book.dto.BookOrderBy;
-import com.sbproject.deokhugam.book.dto.CursorPageResponseBookDto;
+import com.sbproject.deokhugam.book.dto.BookUpdateRequest;
 import com.sbproject.deokhugam.book.dto.Direction;
+import com.sbproject.deokhugam.book.dto.NaverBookDto;
 import com.sbproject.deokhugam.book.service.BookService;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 
@@ -71,6 +73,18 @@ public class BookController {
 	public ResponseEntity<Void> deleteBook(@PathVariable UUID bookId) {
 		bookService.deleteBook(bookId);
 		return ResponseEntity.noContent().build();
+	}
+
+	@PatchMapping(value = "/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<BookDto> updateBook(@PathVariable UUID bookId,
+	                                       @RequestPart(value = "bookData") @Valid BookUpdateRequest request,
+	                                       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
+		return ResponseEntity.ok(bookService.updateBook(bookId, request, thumbnailImage));
+	}
+
+	@GetMapping("/info")
+	public ResponseEntity<NaverBookDto> getBookInfo(@RequestParam("isbn") String isbn) {
+		return ResponseEntity.ok(bookService.getBookInfo(isbn));
 	}
 
 	@DeleteMapping("/{bookId}/hard")

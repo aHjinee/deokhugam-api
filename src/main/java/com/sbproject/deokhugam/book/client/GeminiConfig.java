@@ -1,11 +1,10 @@
-package com.sbproject.deokhugam.config;
-
-import com.google.genai.Client;
+package com.sbproject.deokhugam.book.client;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.google.genai.Client;
 
 @Configuration
 public class GeminiConfig {

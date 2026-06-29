@@ -18,6 +18,7 @@ public enum ErrorCode {
 	BOOK_ALREADY_EXISTS("ISBN이 이미 존재합니다."),
 	ISBN_EXTRACTION_FAILED("ISBN을 추출할 수 없습니다."),
 	OCR_PROCESSING_FAILED("이미지 처리 중 오류가 발생했습니다."),
+	NAVER_BOOK_NOT_FOUND("Naver API를 통해 ISBN으로 도서 정보를 찾을 수 없습니다."),
 
     // Post
     POST_NOT_FOUND("리뷰를 찾을 수 없습니다."),
