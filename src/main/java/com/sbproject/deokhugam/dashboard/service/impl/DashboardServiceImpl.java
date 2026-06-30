@@ -3,13 +3,19 @@ package com.sbproject.deokhugam.dashboard.service.impl;
 import com.sbproject.deokhugam.dashboard.document.PopularBooksDocument;
 import com.sbproject.deokhugam.dashboard.document.PopularReviewsDocument;
 import com.sbproject.deokhugam.dashboard.document.PowerUsersDocument;
+import com.sbproject.deokhugam.dashboard.document.UserActivityStatsDocument;
+import com.sbproject.deokhugam.dashboard.dto.PopularBooksRankingResponse;
 import com.sbproject.deokhugam.dashboard.dto.PopularBooksResponse;
+import com.sbproject.deokhugam.dashboard.dto.PopularReviewsRankingResponse;
 import com.sbproject.deokhugam.dashboard.dto.PopularReviewsResponse;
+import com.sbproject.deokhugam.dashboard.dto.PowerUsersRankingResponse;
 import com.sbproject.deokhugam.dashboard.dto.PowerUsersResponse;
+import com.sbproject.deokhugam.dashboard.dto.UserActivityStatsResponse;
 import com.sbproject.deokhugam.dashboard.entity.PeriodType;
 import com.sbproject.deokhugam.dashboard.repository.PopularBooksRepository;
 import com.sbproject.deokhugam.dashboard.repository.PopularReviewsRepository;
 import com.sbproject.deokhugam.dashboard.repository.PowerUsersRepository;
+import com.sbproject.deokhugam.dashboard.repository.UserActivityStatsRepository;
 import com.sbproject.deokhugam.dashboard.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,52 +30,88 @@ public class DashboardServiceImpl implements DashboardService {
   private final PopularBooksRepository popularBooksRepository;
   private final PopularReviewsRepository popularReviewsRepository;
   private final PowerUsersRepository powerUsersRepository;
+  private final UserActivityStatsRepository userActivityStatsRepository;
 
   @Override
-  public PopularBooksResponse getPopularBooks(String period, String direction, int limit) {
-    PopularBooksDocument doc = popularBooksRepository
-        .findTopByPeriodTypeOrderByPeriodDateDesc(PeriodType.valueOf(period))
-        .orElseThrow(() -> new RuntimeException("인기 도서 데이터가 없습니다."));
+  public PopularBooksResponse getPopularBooks(PeriodType  period, String direction, int limit) {
 
-    List<PopularBooksDocument.Ranking> rankings = doc.getRankings().stream()
+	  PopularBooksDocument doc = popularBooksRepository
+		  .findTopByPeriodTypeOrderByPeriodDateDesc(period)
+		  .orElse(null);
+
+	  if (doc == null) {
+		  return PopularBooksResponse.empty(period);
+	  }
+
+    List<PopularBooksRankingResponse> rankings = doc.getRankings().stream()
         .sorted("DESC".equalsIgnoreCase(direction)
             ? Comparator.comparingInt(PopularBooksDocument.Ranking::getRank).reversed()
             : Comparator.comparingInt(PopularBooksDocument.Ranking::getRank))
         .limit(limit)
+		.map(PopularBooksRankingResponse::from)
         .toList();
 
     return new PopularBooksResponse(doc, rankings);
   }
 
   @Override
-  public PopularReviewsResponse getPopularReviews(String period, String direction, int limit) {
-    PopularReviewsDocument doc = popularReviewsRepository
-        .findTopByPeriodTypeOrderByPeriodDateDesc(PeriodType.valueOf(period))
-        .orElseThrow(() -> new RuntimeException("인기 리뷰 데이터가 없습니다."));
+  public PopularReviewsResponse getPopularReviews(PeriodType  period, String direction, int limit) {
 
-    List<PopularReviewsDocument.Ranking> rankings = doc.getRankings().stream()
+	  PopularReviewsDocument doc = popularReviewsRepository
+		  .findTopByPeriodTypeOrderByPeriodDateDesc(period)
+		  .orElse(null);
+
+	  if (doc == null) {
+		  return PopularReviewsResponse.empty(period);
+	  }
+
+    List<PopularReviewsRankingResponse> rankings = doc.getRankings().stream()
         .sorted("DESC".equalsIgnoreCase(direction)
             ? Comparator.comparingDouble(PopularReviewsDocument.Ranking::getScore).reversed()
             : Comparator.comparingDouble(PopularReviewsDocument.Ranking::getScore))
         .limit(limit)
+		.map(PopularReviewsRankingResponse::from)
         .toList();
 
     return new PopularReviewsResponse(doc, rankings);
   }
 
   @Override
-  public PowerUsersResponse getPowerUsers(String direction, int limit) {
-    PowerUsersDocument doc = powerUsersRepository
-        .findTopByPeriodTypeOrderByPeriodDateDesc(PeriodType.valueOf("ALL_TIME"))
-        .orElseThrow(() -> new RuntimeException("파워 유저 데이터가 없습니다."));
+  public PowerUsersResponse getPowerUsers(PeriodType  period, String direction, int limit) {
 
-    List<PowerUsersDocument.Ranking> rankings = doc.getRankings().stream()
+	  PowerUsersDocument doc = powerUsersRepository
+		  .findTopByPeriodTypeOrderByPeriodDateDesc(period)
+		  .orElse(null);
+
+	  if (doc == null) {
+		  return PowerUsersResponse.empty(period);
+	  }
+
+	  List<PowerUsersRankingResponse> rankings = doc.getRankings().stream()
         .sorted("DESC".equalsIgnoreCase(direction)
             ? Comparator.comparingInt(PowerUsersDocument.Ranking::getRank).reversed()
             : Comparator.comparingInt(PowerUsersDocument.Ranking::getRank))
         .limit(limit)
+		  .map(PowerUsersRankingResponse::from)
         .toList();
 
     return new PowerUsersResponse(doc, rankings);
   }
+
+	@Override
+	public UserActivityStatsResponse getUserActivityStats(String userId) {
+		List<UserActivityStatsDocument> docs =
+			userActivityStatsRepository.findByUserIdOrderByActivityDateDesc(userId);
+
+		if (docs.isEmpty()) {
+			return UserActivityStatsResponse.empty(userId);
+		}
+
+		List<UserActivityStatsResponse.UserActivityStatEntry> content = docs.stream()
+			.map(UserActivityStatsResponse.UserActivityStatEntry::from)
+			.toList();
+
+		return new UserActivityStatsResponse(userId, content);
+	}
+
 }

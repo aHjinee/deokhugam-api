@@ -4,6 +4,7 @@ import com.sbproject.deokhugam.dashboard.entity.PeriodType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
+@TypeAlias("power_users")
 @Document(collection = "power_users")
 public class PowerUsersDocument {
 
@@ -33,6 +35,7 @@ public class PowerUsersDocument {
   private Instant updatedAt;
 
   @Getter
+  @NoArgsConstructor
   public static class Ranking {
     private int rank;
 

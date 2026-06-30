@@ -3,6 +3,8 @@ package com.sbproject.deokhugam.review.service;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.sbproject.deokhugam.notification.entity.NotificationType;
+import com.sbproject.deokhugam.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class ReviewLikeService {
 	private final ReviewLikeRepository reviewLikeRepository;
 	private final ReviewRepository reviewRepository;
 	private final UserRepository userRepository;
+	private final NotificationService notificationService;
 
 	@Transactional
 	public ReviewLikeDto toggleLike(UUID reviewId, UUID userId) {
@@ -50,6 +53,14 @@ public class ReviewLikeService {
 
 			reviewLikeRepository.save(reviewLike);
 			review.increaseLikeCount();
+
+			notificationService.create(
+					NotificationType.REVIEW_LIKE,
+					review.getUser().getId(),
+					user.getId(),
+					review.getId()
+			);
+
 			return new ReviewLikeDto(reviewId, userId, true);
 		}
 	}
