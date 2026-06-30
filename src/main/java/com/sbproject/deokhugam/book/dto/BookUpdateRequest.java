@@ -4,22 +4,24 @@ import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record BookUpdateRequest(
-	@Size(min = 1, max = 50)
+	@NotBlank @Size(min = 1, max = 255)
 	String title,
 
-	@Size(min = 1, max = 255)
+	@NotBlank @Size(min = 1, max = 255)
 	String author,
 
-	@Size(min = 1)
+	@NotBlank @Size(min = 1)
 	String description,
 
-	@Size(min = 1, max = 100)
+	@NotBlank @Size(min = 1, max = 100)
 	String publisher,
 
-	@DateTimeFormat(pattern = "yyyy-MM-dd")
+	@NotNull @DateTimeFormat(pattern = "yyyy-MM-dd")
 	LocalDate publishedDate
 ) {
 }
