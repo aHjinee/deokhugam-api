@@ -78,6 +78,34 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
+	@Transactional
+	public void deleteComment(UUID commentId, UUID requestUserId) {
+		Comment comment = commentRepository.findByIdAndDeletedAtIsNull(commentId)
+			.orElseThrow(() -> new CommentNotFoundException(commentId));
+
+		if (!comment.getUser().getId().equals(requestUserId)) {
+			throw new CommentNotOwnedException();
+		}
+
+		comment.markDeleted();
+		decreaseReviewCommentCount(comment.getReview());
+	}
+
+	@Override
+	@Transactional
+	public void hardDeleteComment(UUID commentId, UUID requestUserId) {
+		Comment comment = commentRepository.findByIdAndDeletedAtIsNull(commentId)
+			.orElseThrow(() -> new CommentNotFoundException(commentId));
+
+		if (!comment.getUser().getId().equals(requestUserId)) {
+			throw new CommentNotOwnedException();
+		}
+
+		decreaseReviewCommentCount(comment.getReview());
+		commentRepository.delete(comment);
+	}
+
+	@Override
 	public SlicePageResponse<CommentDto> findComments(
 		UUID reviewId,
 		String direction,
@@ -158,5 +186,12 @@ public class CommentServiceImpl implements CommentService {
 		}
 
 		return after;
+	}
+
+	private void decreaseReviewCommentCount(Review review) {
+		Integer commentCount = review.getCommentCount();
+		if (commentCount != null && commentCount > 0) {
+			review.setCommentCount(commentCount - 1);
+		}
 	}
 }
