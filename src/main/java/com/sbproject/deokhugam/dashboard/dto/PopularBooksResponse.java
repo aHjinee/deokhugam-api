@@ -19,4 +19,22 @@ public class PopularBooksResponse {
     this.periodDate = doc.getPeriodDate();
     this.content = rankings;
   }
+
+  private PopularBooksResponse(
+	  PeriodType periodType,
+	  Instant periodDate,
+	  List<PopularBooksRankingResponse> content
+  ) {
+	  this.periodType = periodType;
+	  this.periodDate = periodDate;
+	  this.content = content;
+  }
+
+  public static PopularBooksResponse empty(PeriodType periodType) {
+	  return new PopularBooksResponse(
+		  periodType,
+		  null,
+		  List.of()
+		);
+	}
 }

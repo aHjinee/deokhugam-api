@@ -19,4 +19,21 @@ public class PowerUsersResponse {
     this.periodDate = doc.getPeriodDate();
     this.content = rankings;
   }
+  private PowerUsersResponse(
+	  PeriodType periodType,
+	  Instant periodDate,
+	  List<PowerUsersRankingResponse> content
+  ) {
+	  this.periodType = periodType;
+	  this.periodDate = periodDate;
+	  this.content = content;
+  }
+
+  public static PowerUsersResponse empty(PeriodType periodType) {
+	  return new PowerUsersResponse(
+		  periodType,
+		  null,
+		  List.of()
+	  );
+  }
 }

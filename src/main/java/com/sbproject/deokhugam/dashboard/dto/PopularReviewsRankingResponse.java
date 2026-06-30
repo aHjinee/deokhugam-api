@@ -2,6 +2,7 @@ package com.sbproject.deokhugam.dashboard.dto;
 
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbproject.deokhugam.dashboard.document.PopularReviewsDocument;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,12 +12,22 @@ import lombok.Getter;
 public class PopularReviewsRankingResponse {
 
 	private int rank;
+
+	@JsonProperty("id")
 	private String reviewId;
+
 	private String userId;
 	private String bookId;
+
+	@JsonProperty("userNickname")
 	private String nickname;
+
+	@JsonProperty("bookTitle")
 	private String title;
+
+	@JsonProperty("bookThumbnailUrl")
 	private String thumbnailUrl;
+
 	private String content;
 	private double rating;
 	private double score;

@@ -3,6 +3,7 @@ package com.sbproject.deokhugam.dashboard.document;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -10,6 +11,7 @@ import java.time.Instant;
 
 @Getter
 @NoArgsConstructor
+@TypeAlias("userActivityStats")
 @Document(collection = "user_activity_stats")
 public class UserActivityStatsDocument {
 
@@ -38,7 +40,7 @@ public class UserActivityStatsDocument {
   private int receivedLikeCount;
 
   @Field("daily_power_rank")
-  private int dailyPowerRank;
+  private Integer dailyPowerRank;
 
   @Field("created_at")
   private Instant createdAt;
