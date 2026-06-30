@@ -1,13 +1,7 @@
 package com.sbproject.deokhugam.book.client;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-
-import net.coobird.thumbnailator.Thumbnails;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -100,32 +94,14 @@ public class GeminiOcrClient {
 	private final Client geminiClient;
 
 	public String extractIsbn(MultipartFile image) {
-		byte[] resized = resizeImage(image);
 		long start = System.nanoTime();
 		GenerateContentResponse response = geminiClient.models
-			.generateContent(MODEL, buildContent(resized), buildConfig());
+			.generateContent(MODEL, buildContent(image), buildConfig());
 		long elapsed = (System.nanoTime() - start) / 1_000_000;
 		log.info("Gemini OCR 응답 완료 - 소요 시간: {}ms", elapsed);
 		return parseIsbn(response);
 	}
 
-	private byte[] resizeImage(MultipartFile image) {
-		try (
-			InputStream inputStream = image.getInputStream();
-			ByteArrayOutputStream os = new ByteArrayOutputStream()
-		) {
-			Thumbnails.of(inputStream)
-			          .size(1024, 1024)
-			          .keepAspectRatio(true)
-			          .outputFormat("jpeg")
-			          .outputQuality(0.85)
-			          .toOutputStream(os);
-			return os.toByteArray();
-		} catch (IOException e) {
-			log.error("이미지 리사이즈 실패: {}", e.getMessage(), e);
-			throw new OcrProcessingException();
-		}
-	}
 
 	private GenerateContentConfig buildConfig() {
 		Schema schema = Schema.builder()
@@ -165,11 +141,11 @@ public class GeminiOcrClient {
 		                            .build();
 	}
 
-	private Content buildContent(byte[] image) {
+	private Content buildContent(MultipartFile image) {
 		try {
 			return Content.fromParts(
 				Part.fromText(USER_PROMPT),
-				Part.fromBytes(image, "image/jpeg"));
+				Part.fromBytes(image.getBytes(), image.getContentType()));
 		} catch (Exception e) {
 			log.error("ISBN 추출 중 예외 발생: {}", e.getMessage(), e);
 			throw new OcrProcessingException();

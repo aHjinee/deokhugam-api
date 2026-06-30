@@ -12,7 +12,7 @@ import com.sbproject.deokhugam.book.entity.Book;
 
 public interface BookRepository extends JpaRepository<Book, UUID>, BookQueryRepository {
 
-	@Query("SELECT COUNT(b) FROM Book b WHERE (:keyword IS NULL OR b.title LIKE CONCAT('%', :keyword, '%') OR b.author LIKE CONCAT('%', :keyword, '%') OR b.isbn LIKE CONCAT('%', :keyword, '%'))")
+	@Query("SELECT COUNT(b) FROM Book b WHERE (:keyword IS NULL OR b.title ILIKE CONCAT('%', :keyword, '%') OR b.author ILIKE CONCAT('%', :keyword, '%') OR b.isbn ILIKE CONCAT('%', :keyword, '%'))")
 	Long countByKeyword(@Param("keyword") String keyword);
 
 	@Query("SELECT b FROM Book b WHERE b.deletedAt IS NULL AND b.id = :bookId")

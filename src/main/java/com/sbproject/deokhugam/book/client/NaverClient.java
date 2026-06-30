@@ -41,11 +41,16 @@ public class NaverClient {
 		}
 
 		NaverBookItem item = response.items().get(0);
-		byte[] imageBytes = imageClient.get()
-		                               .uri(URI.create(item.image()))
-		                               .retrieve()
-		                               .body(byte[].class);
-		String encoded = Base64.getEncoder().encodeToString(imageBytes);
+		String encoded = null;
+		if (item.image() != null && !item.image().isEmpty()) {
+			byte[] imageBytes = imageClient.get()
+			                               .uri(URI.create(item.image()))
+			                               .retrieve()
+			                               .body(byte[].class);
+			if (imageBytes != null) {
+				encoded = Base64.getEncoder().encodeToString(imageBytes);
+			}
+		}
 		return new NaverBookDto(item, encoded);
 	}
 }

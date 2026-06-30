@@ -77,9 +77,10 @@ public class BookServiceImpl implements BookService {
 	public BookDto createBook(@NonNull BookCreateRequest request, MultipartFile thumbnailImage) {
 		Optional<Book> book = bookRepository.findByIsbn(request.isbn());
 		String imageUrl = null;
+		String storageKey = null;
 		if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 			imageFileValidator.validate(thumbnailImage);
-			String storageKey = fileStorage.save(thumbnailImage);
+			storageKey = fileStorage.save(thumbnailImage);
 			imageUrl = fileStorage.getUrl(storageKey);
 		}
 		if (book.isPresent()) {
@@ -95,6 +96,9 @@ public class BookServiceImpl implements BookService {
 				Book savedBook = bookRepository.save(book.get());
 				return bookMapper.toBookDto(savedBook);
 			} else {
+				if (imageUrl != null) {
+					fileStorage.delete(storageKey);
+				}
 				throw BookAlreadyExistsException.withIsbn(request.isbn());
 			}
 		} else {
@@ -139,7 +143,8 @@ public class BookServiceImpl implements BookService {
 	@Override
 	@Transactional
 	public BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnailImage) {
-		Book book = getBookOrThrow(bookId);
+		Book book = bookRepository.findByIdAndDeletedAtIsNull(bookId)
+		                          .orElseThrow(() -> BookNotFoundException.withId(bookId));
 		String imageUrl = book.getThumbnailUrl();
 		if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 			imageFileValidator.validate(thumbnailImage);
@@ -166,6 +171,4 @@ public class BookServiceImpl implements BookService {
 	private Book getBookOrThrow(UUID bookId){
 		return bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.withId(bookId));
 	}
-
-
 }
