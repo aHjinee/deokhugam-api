@@ -12,11 +12,28 @@ public class PowerUsersResponse {
 
   private final PeriodType periodType;
   private final Instant periodDate;
-  private final List<PowerUsersDocument.Ranking> content;
+	private final List<PowerUsersRankingResponse> content;
 
-  public PowerUsersResponse(PowerUsersDocument doc, List<PowerUsersDocument.Ranking> rankings) {
+  public PowerUsersResponse(PowerUsersDocument doc, List<PowerUsersRankingResponse> rankings) {
     this.periodType = doc.getPeriodType();
     this.periodDate = doc.getPeriodDate();
     this.content = rankings;
+  }
+  private PowerUsersResponse(
+	  PeriodType periodType,
+	  Instant periodDate,
+	  List<PowerUsersRankingResponse> content
+  ) {
+	  this.periodType = periodType;
+	  this.periodDate = periodDate;
+	  this.content = content;
+  }
+
+  public static PowerUsersResponse empty(PeriodType periodType) {
+	  return new PowerUsersResponse(
+		  periodType,
+		  null,
+		  List.of()
+	  );
   }
 }
