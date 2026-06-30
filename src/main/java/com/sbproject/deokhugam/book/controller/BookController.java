@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,10 +29,12 @@ import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/books")
@@ -48,7 +51,8 @@ public class BookController {
 		@RequestParam(required = false) Instant after,
 		@RequestParam(defaultValue = "50") @Min(1) int limit
 	) {
-		log.info("keyword: {}, orderBy: {}, direction: {}, cursor: {}, after: {}, limit: {}", keyword, orderBy, direction, cursor, after, limit);
+		log.info("keyword: {}, orderBy: {}, direction: {}, cursor: {}, after: {}, limit: {}", keyword, orderBy,
+		         direction, cursor, after, limit);
 		return ResponseEntity.ok(bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
 	}
 
@@ -77,13 +81,13 @@ public class BookController {
 
 	@PatchMapping(value = "/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<BookDto> updateBook(@PathVariable UUID bookId,
-	                                       @RequestPart(value = "bookData") @Valid BookUpdateRequest request,
-	                                       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
+	                                          @RequestPart(value = "bookData") @Valid BookUpdateRequest request,
+	                                          @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
 		return ResponseEntity.ok(bookService.updateBook(bookId, request, thumbnailImage));
 	}
 
 	@GetMapping("/info")
-	public ResponseEntity<NaverBookDto> getBookInfo(@RequestParam("isbn") String isbn) {
+	public ResponseEntity<NaverBookDto> getBookInfo(@RequestParam("isbn") @NotBlank String isbn) {
 		return ResponseEntity.ok(bookService.getBookInfo(isbn));
 	}
 

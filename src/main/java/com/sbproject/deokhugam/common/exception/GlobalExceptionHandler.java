@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
             case USER_ALREADY_EXISTS, BOOK_ALREADY_EXISTS, REVIEW_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
             case UNAUTHORIZED_ACCESS, COMMENT_NOT_OWNED, REVIEW_NOT_OWNED -> HttpStatus.FORBIDDEN;
-            case INVALID_REQUEST, ISBN_EXTRACTION_FAILED -> HttpStatus.BAD_REQUEST;
+            case INVALID_REQUEST, ISBN_EXTRACTION_FAILED, INVALID_IMAGE_FILE -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

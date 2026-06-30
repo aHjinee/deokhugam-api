@@ -39,6 +39,7 @@ public enum ErrorCode {
     // File
     FILE_SAVE_FAILED("파일 저장에 실패했습니다."),
     FILE_DELETE_FAILED("파일 삭제에 실패했습니다."),
+	INVALID_IMAGE_FILE("유효하지 않은 이미지 파일입니다."),
 
     // Common
     INVALID_REQUEST("잘못된 요청입니다."),

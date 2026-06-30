@@ -25,6 +25,7 @@ import com.sbproject.deokhugam.book.exception.BookNotFoundException;
 import com.sbproject.deokhugam.book.mapper.BookMapper;
 import com.sbproject.deokhugam.book.repository.BookRepository;
 import com.sbproject.deokhugam.book.service.BookService;
+import com.sbproject.deokhugam.book.service.ImageFileValidator;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.storage.FileStorage;
 
@@ -42,6 +43,7 @@ public class BookServiceImpl implements BookService {
 	private final FileStorage fileStorage;
 	private final NaverClient naverClient;
 	private final GeminiOcrClient ocrClient;
+	private final ImageFileValidator imageFileValidator;
 
 	@Override
 	public SlicePageResponse<BookDto> searchBooks(String keyword, BookOrderBy orderBy, Direction direction,
@@ -76,6 +78,7 @@ public class BookServiceImpl implements BookService {
 		Optional<Book> book = bookRepository.findByIsbn(request.isbn());
 		String imageUrl = null;
 		if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
+			imageFileValidator.validate(thumbnailImage);
 			String storageKey = fileStorage.save(thumbnailImage);
 			imageUrl = fileStorage.getUrl(storageKey);
 		}
@@ -122,6 +125,7 @@ public class BookServiceImpl implements BookService {
 
 	@Override
 	public String extractIsbnFromImage(MultipartFile image) {
+		imageFileValidator.validate(image);
 		return ocrClient.extractIsbn(image);
 	}
 
@@ -138,6 +142,7 @@ public class BookServiceImpl implements BookService {
 		Book book = getBookOrThrow(bookId);
 		String imageUrl = book.getThumbnailUrl();
 		if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
+			imageFileValidator.validate(thumbnailImage);
 			String storageKey = fileStorage.save(thumbnailImage);
 			imageUrl = fileStorage.getUrl(storageKey);
 		}
@@ -161,4 +166,6 @@ public class BookServiceImpl implements BookService {
 	private Book getBookOrThrow(UUID bookId){
 		return bookRepository.findById(bookId).orElseThrow(() -> BookNotFoundException.withId(bookId));
 	}
+
+
 }
