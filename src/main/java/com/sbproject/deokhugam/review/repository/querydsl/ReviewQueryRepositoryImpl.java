@@ -39,10 +39,10 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 	public SlicePageResponse<ReviewDto> searchReviewsCursorSorted(ReviewSearchRequest req) {
 		BooleanBuilder where = new BooleanBuilder();
 
-		// limit 조건 기본값 50 설정
+		// limit 조건 기본값 50
 		int size = (req.getLimit() != null && req.getLimit() > 0) ? req.getLimit() : 50;
 
-		// 1. Soft Delete 필터링
+		// Soft Delete 필터링
 		where.and(r.deletedAt.isNull());
 
 		if (req.getUserId() != null) {
@@ -53,7 +53,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			where.and(r.book.id.eq(req.getBookId()));
 		}
 
-		// 2. Keyword 동적 검색 (도서명 OR 리뷰어 닉네임 OR 리뷰 내용)
+		// Keyword 동적 검색
 		if (req.getKeyword() != null && !req.getKeyword().isBlank()) {
 			where.and(
 				b.title.containsIgnoreCase(req.getKeyword())
@@ -62,12 +62,12 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			);
 		}
 
-		// 3. 특정 날짜 이후 필터 (after)
+		// 특정 날짜 이후 필터
 		if (req.getAfter() != null) {
 			where.and(r.createdAt.gt(req.getAfter()));
 		}
 
-		// 4. 정렬 방향 및 커서(String 포맷의 Instant 형식) 처리
+		// 정렬 방향 및 커서(String 포맷의 Instant 형식) 처리
 		Order orderDirection = ("ASC".equalsIgnoreCase(req.getDirection())) ? Order.ASC : Order.DESC;
 		List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
@@ -103,7 +103,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			}
 		}
 
-		// 5. 평탄화 데이터 쿼리 실행 (ReviewDto 필드 순서와 100% 명확하게 정합성 매핑)
+		// 평탄화 데이터 쿼리 실행
 		List<ReviewDto> rowsPlusOne = queryFactory
 			.select(Projections.constructor(
 				ReviewDto.class,
@@ -117,7 +117,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 				r.rating,
 				r.likeCount,
 				r.commentCount,
-				com.querydsl.core.types.dsl.Expressions.asBoolean(false), // likedByMe는 생성자 파라미터 개수를 맞추기 위해 초기화값 바인딩
+				com.querydsl.core.types.dsl.Expressions.asBoolean(false),
 				r.createdAt,
 				r.updatedAt
 			))
@@ -129,11 +129,11 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			.limit(size + 1L)
 			.fetch();
 
-		// 6. Next 페이지 여부 확인 및 slice 절삭
+		// Next 페이지 여부 확인 및 slice 절삭
 		boolean hasNext = rowsPlusOne.size() > size;
 		List<ReviewDto> contents = hasNext ? rowsPlusOne.subList(0, size) : rowsPlusOne;
 
-		// 7. 현재 로그인 유저 식별 (헤더 식별값을 최우선순위로 처리)
+		// 현재 로그인 유저 식별 (헤더 식별값을 최우선순위로)
 		UUID activeUserId = null;
 		if (req.getDeokhugamRequestUserId() != null) {
 			activeUserId = req.getDeokhugamRequestUserId();
@@ -152,7 +152,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 				.fetch();
 		}
 
-		// 8. 최종 Response 스펙 DTO 리스트 생성 (likedByMe 값 완벽 세팅)
+		// Response 스펙 DTO 리스트 생성
 		List<UUID> finalLikedReviewIds = likedReviewIds;
 		List<ReviewDto> responseContents = contents.stream().map(flat -> {
 			boolean likedByMe = finalLikedReviewIds.contains(flat.getId());
@@ -160,11 +160,11 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			return flat;
 		}).toList();
 
-		// 9. [🔥 수정 핵심] nextCursor 및 nextAfter 바인딩 방어 로직 추가
+		// nextCursor 및 nextAfter 바인딩 방어
 		String nextCursorStr = null;
 		Instant nextAfterInst = null;
 
-		// 다음 페이지가 존재할 때만 커서 값을 세팅하고, 없으면 null을 유지하여 프론트를 멈춥니다.
+		// 다음 페이지가 존재할 때만 커서 값을 세팅하고, 없으면 null을 유지
 		if (hasNext && !responseContents.isEmpty()) {
 			ReviewDto lastElement = responseContents.get(responseContents.size() - 1);
 

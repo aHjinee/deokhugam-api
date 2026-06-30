@@ -2,9 +2,6 @@ package com.sbproject.deokhugam.review.service;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.review.dto.ReviewCreateRequest;
 import com.sbproject.deokhugam.review.dto.ReviewDto;
