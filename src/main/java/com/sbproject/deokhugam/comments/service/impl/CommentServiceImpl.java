@@ -15,6 +15,8 @@ import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.comments.service.CommentService;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
+import com.sbproject.deokhugam.notification.entity.NotificationType;
+import com.sbproject.deokhugam.notification.service.NotificationService;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.user.entity.User;
@@ -37,6 +39,7 @@ public class CommentServiceImpl implements CommentService {
 	private final CommentRepository commentRepository;
 	private final ReviewRepository reviewRepository;
 	private final UserRepository userRepository;
+	private final NotificationService notificationService;
 
 	@Override
 	@Transactional
@@ -53,6 +56,14 @@ public class CommentServiceImpl implements CommentService {
 			.build();
 
 		review.setCommentCount(review.getCommentCount() + 1);
+
+		notificationService.create(
+				NotificationType.REVIEW_COMMENT,
+				review.getUser().getId(),
+				user.getId(),
+				review.getId()
+		);
+
 		return CommentDto.from(commentRepository.save(comment));
 	}
 
