@@ -1,5 +1,4 @@
 package com.sbproject.deokhugam.review.entity;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sbproject.deokhugam.common.entity.BaseEntity;
@@ -15,7 +14,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,9 +39,13 @@ public class Review extends BaseEntity {
 	@JoinColumn(name = "book_id", nullable = false)
 	private Book book;
 
+	@NotBlank(message = "리뷰 내용은 필수입니다.")
+	@Size(min = 1, max = 3000, message = "리뷰는 1자 이상 3000자 이하로 작성해주세요.")
 	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;
 
+	@Min(value = 1, message = "평점은 최소 1점 이상이어야 합니다.")
+	@Max(value = 5, message = "평점은 최대 5점 이하이어야 합니다.")
 	@Column(name = "rating", nullable = false)
 	private Integer rating;
 
@@ -58,20 +60,9 @@ public class Review extends BaseEntity {
 	public void increaseLikeCount() {
 		this.likeCount += 1;
 	}
-
-	public void decreaseLikeCount() {
-		if (this.likeCount > 0) {
-			this.likeCount -= 1;
-		}
-	}
-
+	public void decreaseLikeCount() { if (this.likeCount > 0) { this.likeCount -= 1; }}
 	public void increaseCommentCount() {
 		this.commentCount += 1;
 	}
-
-	public void decreaseCommentCount() {
-		if (this.commentCount > 0) {
-			this.commentCount -= 1;
-		}
-	}
+	public void decreaseCommentCount() { if (this.commentCount > 0) { this.commentCount -= 1; }}
 }

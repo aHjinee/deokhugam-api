@@ -1,7 +1,5 @@
 package com.sbproject.deokhugam.review.controller;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
@@ -92,7 +89,7 @@ public class ReviewController {
 	}
 
 	@DeleteMapping("/{reviewId}/hard")
-	@Operation(summary = "리뷰 물리 삭제", description = "데이터베이스에서 리뷰 레코드를 영구적으로 삭제(Hard Delete)합니다.")
+	@Operation(summary = "리뷰 물리 삭제", description = "데이터베이스에서 리뷰 레코드를 영구적으로 삭제합니다.")
 	public ResponseEntity<Void> deleteReviewPhysical(
 		@PathVariable("reviewId") UUID reviewId,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
@@ -104,7 +101,7 @@ public class ReviewController {
 	@PostMapping("/{reviewId}/like")
 	@Operation(summary = "리뷰 좋아요", description = "특정 리뷰에 좋아요를 반영하거나 토글 처리합니다.")
 	public ResponseEntity<ReviewLikeDto> toggleReviewLike(
-		@PathVariable("reviewId") UUID reviewId,
+		@PathVariable(value = "reviewId") UUID reviewId,
 		@RequestHeader(value = "Deokhugam-Request-User-ID") UUID deokhugamRequestUserId
 	) {
 		ReviewLikeDto reviewLikeDto = reviewLikeService.toggleLike(reviewId, deokhugamRequestUserId);

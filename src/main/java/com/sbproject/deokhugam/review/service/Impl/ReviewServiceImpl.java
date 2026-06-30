@@ -1,7 +1,5 @@
 package com.sbproject.deokhugam.review.service.Impl;
 
-import java.time.Instant;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -42,13 +40,6 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public ReviewDto create(ReviewCreateRequest request) {
-		if (request.getBookId() == null) {
-			throw new IllegalArgumentException("Book id is null");
-		}
-		if (request.getUserId() == null) {
-			throw new IllegalArgumentException("User id is null");
-		}
-
 		Book book = bookRepository.findById(request.getBookId())
 			.orElseThrow(() -> BookNotFoundException.withId(request.getBookId()));
 
@@ -68,8 +59,8 @@ public class ReviewServiceImpl implements ReviewService {
 			.user(user)
 			.content(request.getContent())
 			.rating(request.getRating())
-			.likeCount(0)       // 생성자 단계 기본값 보장
-			.commentCount(0)    // 생성자 단계 기본값 보장
+			.likeCount(0)
+			.commentCount(0)
 			.build();
 
 		Review savedReview = reviewRepository.save(review);
@@ -80,10 +71,6 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public ReviewDto update(UUID reviewId, UUID userId, ReviewUpdateRequest request) {
-		if (userId == null) {
-			throw new IllegalArgumentException("요청자 ID 누락");
-		}
-
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
 
@@ -114,9 +101,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	public ReviewDto findById(UUID reviewId, UUID userId) {
-		if (userId == null) {
-			throw new IllegalArgumentException("요청자 ID 누락");
-		}
 
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
@@ -137,10 +121,6 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public void delete(UUID reviewId, UUID userId) {
-		if (userId == null) {
-			throw new IllegalArgumentException("요청자 ID 누락");
-		}
-
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
 
@@ -158,10 +138,6 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public void deleteSoft(UUID reviewId, UUID userId) {
-		if (userId == null) {
-			throw new IllegalArgumentException("요청자 ID 누락");
-		}
-
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
 
