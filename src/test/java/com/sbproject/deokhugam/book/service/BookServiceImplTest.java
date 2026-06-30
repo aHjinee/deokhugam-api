@@ -38,6 +38,7 @@ import com.sbproject.deokhugam.book.exception.NaverBookNotFoundException;
 import com.sbproject.deokhugam.book.exception.OcrProcessingException;
 import com.sbproject.deokhugam.book.mapper.BookMapper;
 import com.sbproject.deokhugam.book.repository.BookRepository;
+import com.sbproject.deokhugam.book.service.ImageFileValidator;
 import com.sbproject.deokhugam.book.service.impl.BookServiceImpl;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.storage.FileStorage;
@@ -57,6 +58,8 @@ public class BookServiceImplTest {
 	private GeminiOcrClient ocrClient;
 	@Mock
 	private BookMapper bookMapper;
+	@Mock
+	private ImageFileValidator imageFileValidator;
 	@InjectMocks
 	private BookServiceImpl bookService;
 	private UUID bookId;
@@ -109,6 +112,8 @@ public class BookServiceImplTest {
 		bookDto = new BookDto(bookId, title, author, description, publisher, publishedDate, isbn, thumbnailUrl,
 		                      reviewCount, rating, createdAt, updatedAt);
 	}
+
+	// ---------- 도서 목록 조회 searchBooks ----------
 
 	@Test
 	@DisplayName("도서 목록 조회 성공 - 키워드 검색 결과가 있으면 정보를 채워 반환")
@@ -227,6 +232,8 @@ public class BookServiceImplTest {
 		assertThat(response.getNextCursor()).isEqualTo(String.valueOf(bookDto.reviewCount()));
 	}
 
+	// ---------- 도서 등록 createBook ----------
+
 	@Test
 	@DisplayName("도서 등록 - 신규 ISBN이면 새로 저장")
 	void createBook_success() {
@@ -318,6 +325,8 @@ public class BookServiceImplTest {
 		then(fileStorage).shouldHaveNoInteractions();
 	}
 
+	// ---------- 도서 상세 조회 getBook ----------
+
 	@Test
 	@DisplayName("도서 상세 조회 - 성공")
 	void getBook_success() {
@@ -342,6 +351,8 @@ public class BookServiceImplTest {
 		assertThatThrownBy(() -> bookService.getBook(bookId))
 			.isInstanceOf(BookNotFoundException.class);
 	}
+
+	// ---------- ISBN 이미지 추출 extractIsbnFromImage ----------
 
 	@Test
 	@DisplayName("ISBN 이미지 추출 - OCR 클라이언트 결과를 그대로 반환")
@@ -368,6 +379,8 @@ public class BookServiceImplTest {
 			.isInstanceOf(OcrProcessingException.class);
 	}
 
+	// ---------- 도서 논리 삭제 deleteBook ----------
+
 	@Test
 	@DisplayName("도서 논리 삭제 - 성공하면 deletedAt이 설정")
 	void deleteBook_success() {
@@ -392,13 +405,15 @@ public class BookServiceImplTest {
 			.isInstanceOf(BookNotFoundException.class);
 	}
 
+	// ---------- 도서 수정 updateBook ----------
+
 	@Test
 	@DisplayName("도서 수정 - 썸네일 없이 메타데이터만 수정하면 기존 썸네일을 유지")
 	void updateBook_withoutThumbnail() {
 		//given
 		BookUpdateRequest request = new BookUpdateRequest(
 			"리팩터링 2판", "마틴 파울러", "코드 구조 개선", "한빛미디어", LocalDate.parse("2020-04-01"));
-		given(bookRepository.findById(bookId)).willReturn(Optional.of(book));
+		given(bookRepository.findByIdAndDeletedAtIsNull(bookId)).willReturn(Optional.of(book));
 		given(bookRepository.save(book)).willReturn(book);
 		given(bookMapper.toBookDto(book)).willReturn(bookDto);
 
@@ -418,7 +433,7 @@ public class BookServiceImplTest {
 		//given
 		BookUpdateRequest request =
 			new BookUpdateRequest(title, author, description, publisher, publishedDate);
-		given(bookRepository.findById(bookId)).willReturn(Optional.of(book));
+		given(bookRepository.findByIdAndDeletedAtIsNull(bookId)).willReturn(Optional.of(book));
 		given(fileStorage.save(image)).willReturn("storageKey");
 		given(fileStorage.getUrl("storageKey")).willReturn("http://localhost:8080/files/storageKey");
 		given(bookRepository.save(book)).willReturn(book);
@@ -440,7 +455,7 @@ public class BookServiceImplTest {
 		//given
 		BookUpdateRequest request =
 			new BookUpdateRequest(title, author, description, publisher, publishedDate);
-		given(bookRepository.findById(bookId)).willReturn(Optional.empty());
+		given(bookRepository.findByIdAndDeletedAtIsNull(bookId)).willReturn(Optional.empty());
 
 		//when & then
 		assertThatThrownBy(() -> bookService.updateBook(bookId, request, null))
@@ -455,7 +470,7 @@ public class BookServiceImplTest {
 		BookUpdateRequest request =
 			new BookUpdateRequest(title, author, description, publisher, publishedDate);
 		MockMultipartFile emptyImage = new MockMultipartFile("thumbnailImage", new byte[0]); // isEmpty() == true
-		given(bookRepository.findById(bookId)).willReturn(Optional.of(book));
+		given(bookRepository.findByIdAndDeletedAtIsNull(bookId)).willReturn(Optional.of(book));
 		given(bookRepository.save(book)).willReturn(book);
 		given(bookMapper.toBookDto(book)).willReturn(bookDto);
 
@@ -467,6 +482,8 @@ public class BookServiceImplTest {
 		assertThat(book.getThumbnailUrl()).isEqualTo(thumbnailUrl); // 기존 썸네일 유지
 		then(fileStorage).shouldHaveNoInteractions();
 	}
+
+	// ---------- 네이버 도서 정보 조회 getBookInfo ----------
 
 	@Test
 	@DisplayName("네이버 도서 정보 조회 - NaverClient 결과를 그대로 반환")
@@ -494,6 +511,8 @@ public class BookServiceImplTest {
 		assertThatThrownBy(() -> bookService.getBookInfo(isbn))
 			.isInstanceOf(NaverBookNotFoundException.class);
 	}
+
+	// ---------- 도서 물리 삭제 hardDeleteBook ----------
 
 	@Test
 	@DisplayName("도서 물리 삭제 - 성공하면 레코드를 삭제")
