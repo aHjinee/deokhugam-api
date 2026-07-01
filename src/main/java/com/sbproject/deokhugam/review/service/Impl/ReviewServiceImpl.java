@@ -71,6 +71,10 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public ReviewDto update(UUID reviewId, UUID userId, ReviewUpdateRequest request) {
+		if (userId == null) {
+			throw new IllegalArgumentException("요청자 ID 누락");
+		}
+
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
 
@@ -101,6 +105,9 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	public ReviewDto findById(UUID reviewId, UUID userId) {
+		if (userId == null) {
+			throw new IllegalArgumentException("요청자 ID 누락");
+		}
 
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> ReviewNotFoundException.withId(reviewId));
