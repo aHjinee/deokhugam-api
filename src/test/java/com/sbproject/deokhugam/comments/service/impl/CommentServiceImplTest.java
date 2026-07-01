@@ -21,6 +21,7 @@ import com.sbproject.deokhugam.comments.exception.CommentNotOwnedException;
 import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
+import com.sbproject.deokhugam.notification.service.NotificationService;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.user.entity.User;
@@ -46,6 +47,9 @@ class CommentServiceImplTest {
 
 	@Mock
 	private UserRepository userRepository;
+
+	@Mock
+	private NotificationService notificationService;
 
 	@InjectMocks
 	private CommentServiceImpl commentService;

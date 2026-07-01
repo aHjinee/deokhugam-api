@@ -1,4 +1,4 @@
-package com.sbproject.deokhugam.user;
+package com.sbproject.deokhugam.user.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

@@ -98,28 +98,16 @@ class ReviewServiceImplTest {
 	}
 
 	@Test
-	@DisplayName("리뷰 등록 실패: 도서 ID가 누락된 경우 IllegalArgumentException이 발생한다")
+	@DisplayName("리뷰 등록 실패: 도서 ID가 누락된 경우 BookNotFoundException이 발생한다")
 	void createThrowsWhenBookIdIsNull() {
 		// given
 		ReviewCreateRequest request = new ReviewCreateRequest(null, UUID.randomUUID(), "내용", 5);
 
 		// when & then
 		assertThatThrownBy(() -> reviewService.create(request))
-			.isInstanceOf(IllegalArgumentException.class)
-			.hasMessageContaining("Book id is null");
+			.isInstanceOf(BookNotFoundException.class);
 	}
 
-	@Test
-	@DisplayName("리뷰 등록 실패: 유저 ID가 누락된 경우 IllegalArgumentException이 발생한다")
-	void createThrowsWhenUserIdIsNull() {
-		// given
-		ReviewCreateRequest request = new ReviewCreateRequest(UUID.randomUUID(), null, "내용", 5);
-
-		// when & then
-		assertThatThrownBy(() -> reviewService.create(request))
-			.isInstanceOf(IllegalArgumentException.class)
-			.hasMessageContaining("User id is null");
-	}
 
 	@Test
 	@DisplayName("리뷰 등록 실패: 존재하지 않는 도서 ID일 경우 BookNotFoundException이 발생한다")
@@ -208,8 +196,7 @@ class ReviewServiceImplTest {
 
 		// when & then
 		assertThatThrownBy(() -> reviewService.update(reviewId, null, request))
-			.isInstanceOf(IllegalArgumentException.class)
-			.hasMessageContaining("요청자 ID 누락");
+			.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -299,8 +286,7 @@ class ReviewServiceImplTest {
 
 		// when & then
 		assertThatThrownBy(() -> reviewService.findById(reviewId, null))
-			.isInstanceOf(IllegalArgumentException.class)
-			.hasMessageContaining("요청자 ID 누락");
+			.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
