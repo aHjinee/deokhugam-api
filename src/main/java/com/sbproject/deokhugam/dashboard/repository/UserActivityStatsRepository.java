@@ -5,6 +5,9 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-public interface UserActivityStatsRepository extends MongoRepository<UserActivityStatsDocument, String> {
-	List<UserActivityStatsDocument> findByUserIdOrderByActivityDateDesc(String userId);
+public interface UserActivityStatsRepository
+	extends MongoRepository<UserActivityStatsDocument, String> {
+
+	List<UserActivityStatsDocument>
+	findTop30ByUserIdOrderByActivityDateDesc(String userId);
 }
