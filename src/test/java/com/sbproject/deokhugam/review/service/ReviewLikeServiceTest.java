@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.sbproject.deokhugam.notification.service.NotificationService;
 import com.sbproject.deokhugam.review.dto.ReviewLikeDto;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.entity.ReviewLike;
@@ -39,6 +40,9 @@ class ReviewLikeServiceTest {
 	@Mock
 	private UserRepository userRepository;
 
+	@Mock
+	private NotificationService notificationService;
+
 	@InjectMocks
 	private ReviewLikeService reviewLikeService;
 
@@ -49,8 +53,21 @@ class ReviewLikeServiceTest {
 		UUID reviewId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
 
-		User user = User.builder().id(userId).build();
-		Review review = Review.builder().id(reviewId).likeCount(0).build();
+		UUID ownerId = UUID.randomUUID();
+
+		User owner = User.builder()
+				.id(ownerId)
+				.build();
+
+		User user = User.builder()
+				.id(userId)
+				.build();
+
+		Review review = Review.builder()
+				.id(reviewId)
+				.user(owner)
+				.likeCount(0)
+				.build();
 
 		when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -78,8 +95,22 @@ class ReviewLikeServiceTest {
 		UUID reviewId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
 
-		User user = User.builder().id(userId).build();
-		Review review = Review.builder().id(reviewId).likeCount(1).build();
+		UUID ownerId = UUID.randomUUID();
+
+		User owner = User.builder()
+				.id(ownerId)
+				.build();
+
+		User user = User.builder()
+				.id(userId)
+				.build();
+
+		Review review = Review.builder()
+				.id(reviewId)
+				.user(owner)
+				.likeCount(1)
+				.build();
+
 		ReviewLike reviewLike = ReviewLike.builder().id(UUID.randomUUID()).review(review).user(user).build();
 
 		when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
@@ -115,7 +146,14 @@ class ReviewLikeServiceTest {
 		// given
 		UUID reviewId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
-		Review review = Review.builder().id(reviewId).build();
+		User owner = User.builder()
+				.id(UUID.randomUUID())
+				.build();
+
+		Review review = Review.builder()
+				.id(reviewId)
+				.user(owner)
+				.build();
 
 		when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
 		when(userRepository.findById(userId)).thenReturn(Optional.empty());
