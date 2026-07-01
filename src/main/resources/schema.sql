@@ -1,3 +1,6 @@
+-- 한글 2-gram 검색용 pg_bigm 확장 (도서 검색 인덱스에 사용)
+CREATE EXTENSION IF NOT EXISTS pg_bigm;
+
 DROP TABLE IF EXISTS review_likes CASCADE;
 DROP TABLE IF EXISTS comments CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
@@ -36,6 +39,11 @@ CREATE TABLE books
     updated_at     TIMESTAMPTZ      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at     TIMESTAMPTZ
 );
+
+-- 도서 검색용 bigm GIN 인덱스 (LIKE 부분검색 + =% 유사도 가속)
+CREATE INDEX idx_book_title_bigm  ON books USING gin (replace(lower(title),  ' ', '') gin_bigm_ops);
+CREATE INDEX idx_book_author_bigm ON books USING gin (replace(lower(author), ' ', '') gin_bigm_ops);
+CREATE INDEX idx_book_isbn_bigm   ON books USING gin (isbn gin_bigm_ops);
 
 CREATE TABLE reviews
 (

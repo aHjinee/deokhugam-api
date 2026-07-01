@@ -12,6 +12,9 @@ spring:
       max-request-size: 300MB
   profiles:
     active: dev   # dev, prod 선택 가능
+  datasource:
+    hikari:
+      connection-init-sql: SET pg_bigm.similarity_limit = 0.3
 
   # JPA
   jpa:
