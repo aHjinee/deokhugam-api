@@ -48,7 +48,7 @@ public class DashboardServiceImpl implements DashboardService {
             ? Comparator.comparingInt(PopularBooksDocument.Ranking::getRank).reversed()
             : Comparator.comparingInt(PopularBooksDocument.Ranking::getRank))
         .limit(limit)
-		.map(PopularBooksRankingResponse::from)
+		.map(ranking -> PopularBooksRankingResponse.from(ranking, doc))
         .toList();
 
     return new PopularBooksResponse(doc, rankings);
@@ -70,7 +70,9 @@ public class DashboardServiceImpl implements DashboardService {
             ? Comparator.comparingDouble(PopularReviewsDocument.Ranking::getScore).reversed()
             : Comparator.comparingDouble(PopularReviewsDocument.Ranking::getScore))
         .limit(limit)
-		.map(PopularReviewsRankingResponse::from)
+		.map(ranking ->
+			PopularReviewsRankingResponse.from(ranking, doc)
+		)
         .toList();
 
     return new PopularReviewsResponse(doc, rankings);
@@ -92,7 +94,7 @@ public class DashboardServiceImpl implements DashboardService {
             ? Comparator.comparingInt(PowerUsersDocument.Ranking::getRank).reversed()
             : Comparator.comparingInt(PowerUsersDocument.Ranking::getRank))
         .limit(limit)
-		  .map(PowerUsersRankingResponse::from)
+		  .map(ranking -> PowerUsersRankingResponse.from(ranking, doc))
         .toList();
 
     return new PowerUsersResponse(doc, rankings);

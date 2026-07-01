@@ -1,9 +1,9 @@
 package com.sbproject.deokhugam.dashboard.dto;
 
 import java.time.Instant;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbproject.deokhugam.dashboard.document.PopularReviewsDocument;
+import com.sbproject.deokhugam.dashboard.entity.PeriodType;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,47 +11,42 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PopularReviewsRankingResponse {
 
-	private int rank;
-
-	@JsonProperty("id")
+	private String id;
 	private String reviewId;
-
-	private String userId;
 	private String bookId;
-
-	@JsonProperty("userNickname")
-	private String nickname;
-
-	@JsonProperty("bookTitle")
-	private String title;
-
-	@JsonProperty("bookThumbnailUrl")
+	private String bookTitle;
 	private String thumbnailUrl;
-
-	private String content;
-	private double rating;
+	private String userId;
+	private String userNickname;
+	private String reviewContent;
+	private double reviewRating;
+	private PeriodType period;
+	private Instant createdAt;
+	private int rank;
 	private double score;
 	private int likeCount;
 	private int commentCount;
-	private Instant createdAt;
 
 	public static PopularReviewsRankingResponse from(
-		PopularReviewsDocument.Ranking ranking
+		PopularReviewsDocument.Ranking ranking,
+		PopularReviewsDocument document
 	) {
 		return new PopularReviewsRankingResponse(
-			ranking.getRank(),
 			ranking.getReviewId(),
-			ranking.getUserId(),
+			ranking.getReviewId(),
 			ranking.getBookId(),
-			ranking.getNickname(),
 			ranking.getTitle(),
 			ranking.getThumbnailUrl(),
+			ranking.getUserId(),
+			ranking.getNickname(),
 			ranking.getContent(),
 			ranking.getRating(),
+			document.getPeriodType(),
+			ranking.getCreatedAt(),
+			ranking.getRank(),
 			ranking.getScore(),
 			ranking.getLikeCount(),
-			ranking.getCommentCount(),
-			ranking.getCreatedAt()
+			ranking.getCommentCount()
 		);
 	}
 }
