@@ -103,7 +103,7 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public UserActivityStatsResponse getUserActivityStats(String userId) {
 		List<UserActivityStatsDocument> docs =
-			userActivityStatsRepository.findByUserIdOrderByActivityDateDesc(userId);
+			userActivityStatsRepository.findTop30ByUserIdOrderByActivityDateDesc(userId);
 
 		if (docs.isEmpty()) {
 			return UserActivityStatsResponse.empty(userId);
