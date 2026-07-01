@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -191,7 +192,7 @@ class CommentApiIntegrationTest {
 		// when & then
 		mockMvc.perform(get("/api/comments")
 				.param("reviewId", notExistingReviewId.toString()))
-			.andExpect(status().isNotFound())
+				.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value("REVIEW_NOT_FOUND"));
 	}
 
@@ -379,4 +380,5 @@ class CommentApiIntegrationTest {
 			"content", content
 		);
 	}
+
 }
