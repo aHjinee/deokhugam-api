@@ -4,6 +4,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/deokhugam_test
     username: user1
     password: 1234
+
+  data:
+    mongodb:
+      uri: mongodb://local:local1234@localhost:27017/deokhugam_test?authSource=admin
+
 #  sql:
 #    init:
 #      mode: never
