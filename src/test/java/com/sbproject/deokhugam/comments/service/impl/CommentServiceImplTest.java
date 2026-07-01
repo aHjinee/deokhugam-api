@@ -28,10 +28,12 @@ import com.sbproject.deokhugam.comments.dto.CommentUpdateRequest;
 import com.sbproject.deokhugam.comments.entity.Comment;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
 import com.sbproject.deokhugam.comments.exception.CommentNotOwnedException;
-import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
+import com.sbproject.deokhugam.notification.entity.NotificationType;
+import com.sbproject.deokhugam.notification.service.NotificationService;
 import com.sbproject.deokhugam.review.entity.Review;
+import com.sbproject.deokhugam.review.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.user.entity.User;
 import com.sbproject.deokhugam.user.exception.UserNotFoundException;
@@ -82,6 +84,12 @@ class CommentServiceImplTest {
 		verify(commentRepository).save(commentCaptor.capture());
 		assertThat(commentCaptor.getValue().getReview()).isEqualTo(review);
 		assertThat(commentCaptor.getValue().getUser()).isEqualTo(user);
+		verify(notificationService).create(
+			NotificationType.REVIEW_COMMENT,
+			review.getUser().getId(),
+			user.getId(),
+			review.getId()
+		);
 	}
 
 	@Test
