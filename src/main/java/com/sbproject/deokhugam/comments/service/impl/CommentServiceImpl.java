@@ -11,13 +11,13 @@ import com.sbproject.deokhugam.comments.dto.CommentUpdateRequest;
 import com.sbproject.deokhugam.comments.entity.Comment;
 import com.sbproject.deokhugam.comments.exception.CommentNotFoundException;
 import com.sbproject.deokhugam.comments.exception.CommentNotOwnedException;
-import com.sbproject.deokhugam.comments.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.comments.repository.CommentRepository;
 import com.sbproject.deokhugam.comments.service.CommentService;
 import com.sbproject.deokhugam.common.dto.SlicePageResponse;
 import com.sbproject.deokhugam.notification.entity.NotificationType;
 import com.sbproject.deokhugam.notification.service.NotificationService;
 import com.sbproject.deokhugam.review.entity.Review;
+import com.sbproject.deokhugam.review.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.user.entity.User;
 import com.sbproject.deokhugam.user.exception.UserNotFoundException;
@@ -45,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
 	@Transactional
 	public CommentDto createComment(CommentCreateRequest request, UUID requestUserId) {
 		Review review = reviewRepository.findById(request.reviewId())
-			.orElseThrow(() -> new ReviewNotFoundException(request.reviewId()));
+			.orElseThrow(() -> ReviewNotFoundException.withId(request.reviewId()));
 		User user = userRepository.findById(requestUserId)
 			.orElseThrow(() -> UserNotFoundException.withId(requestUserId));
 
@@ -55,7 +55,7 @@ public class CommentServiceImpl implements CommentService {
 			.content(request.content())
 			.build();
 
-		review.setCommentCount(review.getCommentCount() + 1);
+		review.increaseCommentCount();
 
 		notificationService.create(
 				NotificationType.REVIEW_COMMENT,
@@ -125,7 +125,7 @@ public class CommentServiceImpl implements CommentService {
 		int limit
 	) {
 		if (!reviewRepository.existsById(reviewId)) {
-			throw new ReviewNotFoundException(reviewId);
+			throw ReviewNotFoundException.withId(reviewId);
 		}
 
 		if (limit <= 0) {
@@ -200,9 +200,6 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	private void decreaseReviewCommentCount(Review review) {
-		Integer commentCount = review.getCommentCount();
-		if (commentCount != null && commentCount > 0) {
-			review.setCommentCount(commentCount - 1);
-		}
+		review.decreaseCommentCount();
 	}
 }
