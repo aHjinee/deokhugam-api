@@ -20,8 +20,16 @@ import com.sbproject.deokhugam.dashboard.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +39,10 @@ public class DashboardServiceImpl implements DashboardService {
   private final PopularReviewsRepository popularReviewsRepository;
   private final PowerUsersRepository powerUsersRepository;
   private final UserActivityStatsRepository userActivityStatsRepository;
+	private static final ZoneId SEOUL_ZONE =
+		ZoneId.of("Asia/Seoul");
+
+	private static final int ACTIVITY_CYCLE_DAYS = 30;
 
   @Override
   public PopularBooksResponse getPopularBooks(PeriodType  period, String direction, int limit) {
@@ -101,19 +113,110 @@ public class DashboardServiceImpl implements DashboardService {
   }
 
 	@Override
-	public UserActivityStatsResponse getUserActivityStats(String userId) {
-		List<UserActivityStatsDocument> docs =
-			userActivityStatsRepository.findTop30ByUserIdOrderByActivityDateDesc(userId);
+	public UserActivityStatsResponse getUserActivityStats(
+		String userId
+	) {
+		UserActivityStatsDocument firstDocument =
+			userActivityStatsRepository
+				.findFirstByUserIdOrderByActivityDateAsc(userId)
+				.orElse(null);
 
-		if (docs.isEmpty()) {
+		/*
+		 * 활동 기록이 한 건도 없는 사용자는
+		 * 기준일 자체를 정할 수 없으므로 빈 응답을 반환한다.
+		 */
+		if (firstDocument == null) {
 			return UserActivityStatsResponse.empty(userId);
 		}
 
-		List<UserActivityStatsResponse.UserActivityStatEntry> content = docs.stream()
-			.map(UserActivityStatsResponse.UserActivityStatEntry::from)
-			.toList();
+		LocalDate firstActivityDate =
+			firstDocument.getActivityDate()
+				.atZone(SEOUL_ZONE)
+				.toLocalDate();
 
-		return new UserActivityStatsResponse(userId, content);
+		LocalDate today =
+			LocalDate.now(SEOUL_ZONE);
+
+		long daysSinceFirstActivity =
+			ChronoUnit.DAYS.between(
+				firstActivityDate,
+				today
+			);
+
+		long cycleIndex =
+			Math.floorDiv(
+				daysSinceFirstActivity,
+				ACTIVITY_CYCLE_DAYS
+			);
+
+		LocalDate cycleStart =
+			firstActivityDate.plusDays(
+				cycleIndex * ACTIVITY_CYCLE_DAYS
+			);
+
+		LocalDate cycleEnd =
+			cycleStart.plusDays(
+				ACTIVITY_CYCLE_DAYS - 1
+			);
+
+		Instant startInstant =
+			cycleStart
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		/*
+		 * 조회 조건이 activityDate < endInstant이므로
+		 * 주기 마지막 날의 다음 날 0시를 종료 경계로 사용한다.
+		 */
+		Instant endInstant =
+			cycleEnd.plusDays(1)
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		List<UserActivityStatsDocument> docs =
+			userActivityStatsRepository
+				.findActivityStatsByPeriod(
+					userId,
+					startInstant,
+					endInstant
+				);
+
+		Map<LocalDate, UserActivityStatsDocument> documentByDate =
+			docs.stream()
+				.collect(Collectors.toMap(
+					document -> document
+						.getActivityDate()
+						.atZone(SEOUL_ZONE)
+						.toLocalDate(),
+					Function.identity()
+				));
+
+		List<UserActivityStatsResponse.UserActivityStatEntry> content =
+			IntStream.range(0, ACTIVITY_CYCLE_DAYS)
+				.mapToObj(cycleStart::plusDays)
+				.map(date -> {
+					UserActivityStatsDocument document =
+						documentByDate.get(date);
+
+					if (document != null) {
+						return UserActivityStatsResponse
+							.UserActivityStatEntry
+							.from(document);
+					}
+
+					return UserActivityStatsResponse
+						.UserActivityStatEntry
+						.empty(
+							date.atStartOfDay(SEOUL_ZONE)
+								.toInstant()
+						);
+				})
+				.toList();
+
+		return new UserActivityStatsResponse(
+			userId,
+			content
+		);
 	}
 
 }
