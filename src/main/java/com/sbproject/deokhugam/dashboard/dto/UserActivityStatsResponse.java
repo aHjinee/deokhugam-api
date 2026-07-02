@@ -37,20 +37,50 @@ public class UserActivityStatsResponse {
 		// 순위가 아직 확정되지 않은 경우 null
 		private final Integer dailyPowerRank;
 
-		private UserActivityStatEntry(UserActivityStatsDocument doc) {
-			this.activityDate = doc.getActivityDate();
-			this.reviewCount = doc.getReviewCount();
-			this.commentCount = doc.getCommentCount();
-			this.likeCount = doc.getLikeCount();
-			this.receivedCommentCount = doc.getReceivedCommentCount();
-			this.receivedLikeCount = doc.getReceivedLikeCount();
-			this.dailyPowerRank = doc.getDailyPowerRank();
+		private UserActivityStatEntry(
+			Instant activityDate,
+			int reviewCount,
+			int commentCount,
+			int likeCount,
+			int receivedCommentCount,
+			int receivedLikeCount,
+			Integer dailyPowerRank
+		) {
+			this.activityDate = activityDate;
+			this.reviewCount = reviewCount;
+			this.commentCount = commentCount;
+			this.likeCount = likeCount;
+			this.receivedCommentCount = receivedCommentCount;
+			this.receivedLikeCount = receivedLikeCount;
+			this.dailyPowerRank = dailyPowerRank;
 		}
 
 		public static UserActivityStatEntry from(
 			UserActivityStatsDocument doc
 		) {
-			return new UserActivityStatEntry(doc);
+			return new UserActivityStatEntry(
+				doc.getActivityDate(),
+				doc.getReviewCount(),
+				doc.getCommentCount(),
+				doc.getLikeCount(),
+				doc.getReceivedCommentCount(),
+				doc.getReceivedLikeCount(),
+				doc.getDailyPowerRank()
+			);
+		}
+
+		public static UserActivityStatEntry empty(
+			Instant activityDate
+		) {
+			return new UserActivityStatEntry(
+				activityDate,
+				0,
+				0,
+				0,
+				0,
+				0,
+				null
+			);
 		}
 	}
 }
