@@ -520,13 +520,13 @@ class DashboardApiIntegrationTest {
 	// ---------- 사용자 활동 통계 GET /api/users/{userId}/activity-stats ----------
 
 	@Test
-	@DisplayName("사용자 활동 통계 조회 - 현재 30일 주기를 날짜 오름차순으로 반환한다")
+	@DisplayName("사용자 활동 통계 조회 - 오늘부터 최근 30일을 날짜 오름차순으로 반환한다")
 	void getUserActivityStats_success() throws Exception {
 		LocalDate today = LocalDate.now(SEOUL_ZONE);
-		LocalDate firstActivityDate = today.minusDays(1);
+		LocalDate rangeStart = today.minusDays(29);
 
-		Instant firstActivityInstant =
-			firstActivityDate
+		Instant rangeStartInstant =
+			rangeStart
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
@@ -537,7 +537,7 @@ class DashboardApiIntegrationTest {
 
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			firstActivityInstant,
+			rangeStartInstant,
 			2,
 			3,
 			4,
@@ -565,9 +565,9 @@ class DashboardApiIntegrationTest {
 			.andExpect(jsonPath("$.userId").value(USER_ID_1))
 			.andExpect(jsonPath("$.content.length()").value(30))
 
-			// 최초 활동일
+			// 30일 전 (범위 시작일)
 			.andExpect(jsonPath("$.content[0].activityDate")
-				.value(firstActivityInstant.toString()))
+				.value(rangeStartInstant.toString()))
 			.andExpect(jsonPath("$.content[0].reviewCount").value(2))
 			.andExpect(jsonPath("$.content[0].commentCount").value(3))
 			.andExpect(jsonPath("$.content[0].likeCount").value(4))
@@ -575,64 +575,63 @@ class DashboardApiIntegrationTest {
 			.andExpect(jsonPath("$.content[0].receivedLikeCount").value(6))
 			.andExpect(jsonPath("$.content[0].dailyPowerRank").value(2))
 
-			// 오늘
-			.andExpect(jsonPath("$.content[1].activityDate")
+			// 오늘 (범위 마지막 날)
+			.andExpect(jsonPath("$.content[29].activityDate")
 				.value(todayInstant.toString()))
-			.andExpect(jsonPath("$.content[1].reviewCount").value(7))
-			.andExpect(jsonPath("$.content[1].commentCount").value(8))
-			.andExpect(jsonPath("$.content[1].likeCount").value(9))
-			.andExpect(jsonPath("$.content[1].receivedCommentCount").value(10))
-			.andExpect(jsonPath("$.content[1].receivedLikeCount").value(11))
-			.andExpect(jsonPath("$.content[1].dailyPowerRank").value(1))
+			.andExpect(jsonPath("$.content[29].reviewCount").value(7))
+			.andExpect(jsonPath("$.content[29].commentCount").value(8))
+			.andExpect(jsonPath("$.content[29].likeCount").value(9))
+			.andExpect(jsonPath("$.content[29].receivedCommentCount").value(10))
+			.andExpect(jsonPath("$.content[29].receivedLikeCount").value(11))
+			.andExpect(jsonPath("$.content[29].dailyPowerRank").value(1))
 
 			// 데이터가 없는 날짜는 0과 null
-			.andExpect(jsonPath("$.content[2].reviewCount").value(0))
-			.andExpect(jsonPath("$.content[2].commentCount").value(0))
-			.andExpect(jsonPath("$.content[2].likeCount").value(0))
-			.andExpect(jsonPath("$.content[2].receivedCommentCount").value(0))
-			.andExpect(jsonPath("$.content[2].receivedLikeCount").value(0))
-			.andExpect(jsonPath("$.content[2].dailyPowerRank").isEmpty());
+			.andExpect(jsonPath("$.content[1].reviewCount").value(0))
+			.andExpect(jsonPath("$.content[1].commentCount").value(0))
+			.andExpect(jsonPath("$.content[1].likeCount").value(0))
+			.andExpect(jsonPath("$.content[1].receivedCommentCount").value(0))
+			.andExpect(jsonPath("$.content[1].receivedLikeCount").value(0))
+			.andExpect(jsonPath("$.content[1].dailyPowerRank").isEmpty());
 	}
 
 	@Test
-	@DisplayName("사용자 활동 통계 조회 - 최초 활동일부터 현재 30일 주기를 반환한다")
-	void getUserActivityStats_currentCycle() throws Exception {
+	@DisplayName("사용자 활동 통계 조회 - 범위(30일) 밖의 오래된 활동은 포함하지 않는다")
+	void getUserActivityStats_excludesOutOfRangeActivity() throws Exception {
 		LocalDate today = LocalDate.now(SEOUL_ZONE);
+		LocalDate rangeStart = today.minusDays(29);
+		LocalDate outOfRangeDate = rangeStart.minusDays(5);
 
-		// 오늘이 최초 활동일부터 35일째가 되도록 설정
-		LocalDate firstActivityDate = today.minusDays(35);
-		LocalDate currentCycleStart = firstActivityDate.plusDays(30);
-
-		Instant firstActivityInstant =
-			firstActivityDate
+		Instant rangeStartInstant =
+			rangeStart
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
-		Instant currentCycleActivityInstant =
-			currentCycleStart
+		Instant outOfRangeInstant =
+			outOfRangeDate
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
+		// 범위 밖(30일보다 더 과거) 활동 - 응답에 포함되면 안 됨
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			firstActivityInstant,
-			1,
-			1,
-			1,
-			1,
-			1,
-			10
+			outOfRangeInstant,
+			99,
+			99,
+			99,
+			99,
+			99,
+			1
 		));
 
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			currentCycleActivityInstant,
-			5,
-			5,
-			5,
-			5,
-			5,
-			3
+			rangeStartInstant,
+			1,
+			1,
+			1,
+			1,
+			1,
+			5
 		));
 
 		mockMvc.perform(get(
@@ -641,12 +640,9 @@ class DashboardApiIntegrationTest {
 			))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.content.length()").value(30))
-
-			// 과거 1주기가 아니라 현재 2주기의 시작일부터 반환
 			.andExpect(jsonPath("$.content[0].activityDate")
-				.value(currentCycleActivityInstant.toString()))
-			.andExpect(jsonPath("$.content[0].reviewCount").value(5))
-			.andExpect(jsonPath("$.content[0].dailyPowerRank").value(3));
+				.value(rangeStartInstant.toString()))
+			.andExpect(jsonPath("$.content[0].reviewCount").value(1));
 	}
 
 	@Test
@@ -674,10 +670,10 @@ class DashboardApiIntegrationTest {
 			))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.content.length()").value(30))
-			.andExpect(jsonPath("$.content[0].activityDate")
+			.andExpect(jsonPath("$.content[29].activityDate")
 				.value(activityDate.toString()))
-			.andExpect(jsonPath("$.content[0].reviewCount").value(1))
-			.andExpect(jsonPath("$.content[0].dailyPowerRank").isEmpty());
+			.andExpect(jsonPath("$.content[29].reviewCount").value(1))
+			.andExpect(jsonPath("$.content[29].dailyPowerRank").isEmpty());
 	}
 
 	@Test
@@ -729,11 +725,11 @@ class DashboardApiIntegrationTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.userId").value(USER_ID_1))
 			.andExpect(jsonPath("$.content.length()").value(30))
-			.andExpect(jsonPath("$.content[0].activityDate")
+			.andExpect(jsonPath("$.content[29].activityDate")
 				.value(activityDate.toString()))
-			.andExpect(jsonPath("$.content[0].reviewCount").value(1))
-			.andExpect(jsonPath("$.content[0].commentCount").value(1))
-			.andExpect(jsonPath("$.content[0].dailyPowerRank").value(1));
+			.andExpect(jsonPath("$.content[29].reviewCount").value(1))
+			.andExpect(jsonPath("$.content[29].commentCount").value(1))
+			.andExpect(jsonPath("$.content[29].dailyPowerRank").value(1));
 	}
 
 	// ---------- 테스트 데이터 생성 ----------

@@ -561,16 +561,16 @@ class DashboardServiceImplTest {
 	// ========== 사용자 활동 통계 ==========
 
 	@Test
-	@DisplayName("사용자 활동 통계 조회 - 현재 30일 주기를 날짜 오름차순으로 반환")
+	@DisplayName("사용자 활동 통계 조회 - 오늘부터 최근 30일을 날짜 오름차순으로 반환")
 	void getUserActivityStats_success() {
 		// given
 		String userId = "user-1";
 
 		LocalDate today = LocalDate.now(SEOUL_ZONE);
-		LocalDate firstActivityDate = today.minusDays(1);
+		LocalDate rangeStart = today.minusDays(29);
 
-		Instant firstActivityInstant =
-			firstActivityDate
+		Instant rangeStartInstant =
+			rangeStart
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
@@ -579,20 +579,25 @@ class DashboardServiceImplTest {
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
-		UserActivityStatsDocument firstDocument =
+		Instant endInstant =
+			today.plusDays(1)
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		UserActivityStatsDocument rangeStartDocument =
 			mock(UserActivityStatsDocument.class);
 
 		UserActivityStatsDocument todayDocument =
 			mock(UserActivityStatsDocument.class);
 
-		given(firstDocument.getActivityDate())
-			.willReturn(firstActivityInstant);
-		given(firstDocument.getReviewCount()).willReturn(1);
-		given(firstDocument.getCommentCount()).willReturn(1);
-		given(firstDocument.getLikeCount()).willReturn(2);
-		given(firstDocument.getReceivedCommentCount()).willReturn(1);
-		given(firstDocument.getReceivedLikeCount()).willReturn(2);
-		given(firstDocument.getDailyPowerRank()).willReturn(3);
+		given(rangeStartDocument.getActivityDate())
+			.willReturn(rangeStartInstant);
+		given(rangeStartDocument.getReviewCount()).willReturn(1);
+		given(rangeStartDocument.getCommentCount()).willReturn(1);
+		given(rangeStartDocument.getLikeCount()).willReturn(2);
+		given(rangeStartDocument.getReceivedCommentCount()).willReturn(1);
+		given(rangeStartDocument.getReceivedLikeCount()).willReturn(2);
+		given(rangeStartDocument.getDailyPowerRank()).willReturn(3);
 
 		given(todayDocument.getActivityDate())
 			.willReturn(todayInstant);
@@ -605,19 +610,12 @@ class DashboardServiceImplTest {
 
 		given(
 			userActivityStatsRepository
-				.findFirstByUserIdOrderByActivityDateAsc(userId)
-		).willReturn(Optional.of(firstDocument));
-
-		given(
-			userActivityStatsRepository
 				.findActivityStatsByPeriod(
 					userId,
-					firstActivityInstant,
-					firstActivityDate.plusDays(30)
-						.atStartOfDay(SEOUL_ZONE)
-						.toInstant()
+					rangeStartInstant,
+					endInstant
 				)
-		).willReturn(List.of(firstDocument, todayDocument));
+		).willReturn(List.of(rangeStartDocument, todayDocument));
 
 		// when
 		UserActivityStatsResponse response =
@@ -628,32 +626,30 @@ class DashboardServiceImplTest {
 		assertThat(response.getContent()).hasSize(30);
 
 		assertThat(response.getContent().get(0).getActivityDate())
-			.isEqualTo(firstActivityInstant);
+			.isEqualTo(rangeStartInstant);
 		assertThat(response.getContent().get(0).getReviewCount())
 			.isEqualTo(1);
 		assertThat(response.getContent().get(0).getDailyPowerRank())
 			.isEqualTo(3);
 
-		assertThat(response.getContent().get(1).getActivityDate())
+		assertThat(response.getContent().get(29).getActivityDate())
 			.isEqualTo(todayInstant);
-		assertThat(response.getContent().get(1).getReviewCount())
+		assertThat(response.getContent().get(29).getReviewCount())
 			.isEqualTo(3);
-		assertThat(response.getContent().get(1).getDailyPowerRank())
+		assertThat(response.getContent().get(29).getDailyPowerRank())
 			.isEqualTo(1);
 
-		assertThat(response.getContent().get(2).getReviewCount())
+		assertThat(response.getContent().get(1).getReviewCount())
 			.isZero();
-		assertThat(response.getContent().get(2).getDailyPowerRank())
+		assertThat(response.getContent().get(1).getDailyPowerRank())
 			.isNull();
 
 		then(userActivityStatsRepository)
 			.should()
 			.findActivityStatsByPeriod(
 				userId,
-				firstActivityInstant,
-				firstActivityDate.plusDays(30)
-					.atStartOfDay(SEOUL_ZONE)
-					.toInstant()
+				rangeStartInstant,
+				endInstant
 			);
 	}
 
@@ -663,10 +659,27 @@ class DashboardServiceImplTest {
 		// given
 		String userId = "user-1";
 
+		LocalDate today = LocalDate.now(SEOUL_ZONE);
+		LocalDate rangeStart = today.minusDays(29);
+
+		Instant rangeStartInstant =
+			rangeStart
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		Instant endInstant =
+			today.plusDays(1)
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
 		given(
 			userActivityStatsRepository
-				.findFirstByUserIdOrderByActivityDateAsc(userId)
-		).willReturn(Optional.empty());
+				.findActivityStatsByPeriod(
+					userId,
+					rangeStartInstant,
+					endInstant
+				)
+		).willReturn(List.of());
 
 		// when
 		UserActivityStatsResponse response =
@@ -678,7 +691,11 @@ class DashboardServiceImplTest {
 
 		then(userActivityStatsRepository)
 			.should()
-			.findFirstByUserIdOrderByActivityDateAsc(userId);
+			.findActivityStatsByPeriod(
+				userId,
+				rangeStartInstant,
+				endInstant
+			);
 	}
 
 }
