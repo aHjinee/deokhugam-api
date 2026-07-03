@@ -23,13 +23,14 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -116,60 +117,18 @@ public class DashboardServiceImpl implements DashboardService {
 	public UserActivityStatsResponse getUserActivityStats(
 		String userId
 	) {
-		UserActivityStatsDocument firstDocument =
-			userActivityStatsRepository
-				.findFirstByUserIdOrderByActivityDateAsc(userId)
-				.orElse(null);
+		LocalDate today = LocalDate.now(SEOUL_ZONE);
 
-		/*
-		 * 활동 기록이 한 건도 없는 사용자는
-		 * 기준일 자체를 정할 수 없으므로 빈 응답을 반환한다.
-		 */
-		if (firstDocument == null) {
-			return UserActivityStatsResponse.empty(userId);
-		}
-
-		LocalDate firstActivityDate =
-			firstDocument.getActivityDate()
-				.atZone(SEOUL_ZONE)
-				.toLocalDate();
-
-		LocalDate today =
-			LocalDate.now(SEOUL_ZONE);
-
-		long daysSinceFirstActivity =
-			ChronoUnit.DAYS.between(
-				firstActivityDate,
-				today
-			);
-
-		long cycleIndex =
-			Math.floorDiv(
-				daysSinceFirstActivity,
-				ACTIVITY_CYCLE_DAYS
-			);
-
-		LocalDate cycleStart =
-			firstActivityDate.plusDays(
-				cycleIndex * ACTIVITY_CYCLE_DAYS
-			);
-
-		LocalDate cycleEnd =
-			cycleStart.plusDays(
-				ACTIVITY_CYCLE_DAYS - 1
-			);
+		// GitHub 잔디처럼 "오늘부터 최근 30일" 고정 윈도우
+		LocalDate rangeStart = today.minusDays(ACTIVITY_CYCLE_DAYS - 1);
 
 		Instant startInstant =
-			cycleStart
+			rangeStart
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
-		/*
-		 * 조회 조건이 activityDate < endInstant이므로
-		 * 주기 마지막 날의 다음 날 0시를 종료 경계로 사용한다.
-		 */
 		Instant endInstant =
-			cycleEnd.plusDays(1)
+			today.plusDays(1)
 				.atStartOfDay(SEOUL_ZONE)
 				.toInstant();
 
@@ -180,6 +139,13 @@ public class DashboardServiceImpl implements DashboardService {
 					startInstant,
 					endInstant
 				);
+
+		/*
+		 * 활동 기록이 한 건도 없는 사용자는 빈 응답을 반환한다.
+		 */
+		if (docs.isEmpty()) {
+			return UserActivityStatsResponse.empty(userId);
+		}
 
 		Map<LocalDate, UserActivityStatsDocument> documentByDate =
 			docs.stream()
@@ -193,7 +159,7 @@ public class DashboardServiceImpl implements DashboardService {
 
 		List<UserActivityStatsResponse.UserActivityStatEntry> content =
 			IntStream.range(0, ACTIVITY_CYCLE_DAYS)
-				.mapToObj(cycleStart::plusDays)
+				.mapToObj(rangeStart::plusDays)
 				.map(date -> {
 					UserActivityStatsDocument document =
 						documentByDate.get(date);
