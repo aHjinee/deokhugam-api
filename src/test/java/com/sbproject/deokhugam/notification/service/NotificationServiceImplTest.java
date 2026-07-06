@@ -54,6 +54,9 @@ class NotificationServiceImplTest {
     @Mock
     private ReviewRepository reviewRepository;
 
+    @Mock
+    private NotificationSseService notificationSseService;
+
     @InjectMocks
     private NotificationServiceImpl notificationService;
 
@@ -336,6 +339,9 @@ class NotificationServiceImplTest {
         then(notificationRepository)
                 .should()
                 .save(any(Notification.class));
+        then(notificationSseService)
+                .should()
+                .notify(userId);
     }
 
     @Test
@@ -386,6 +392,10 @@ class NotificationServiceImplTest {
                 );
 
         assertThat(result).isEqualTo(dto);
+
+        then(notificationSseService)
+                .should()
+                .notify(userId);
     }
     @Test
     @DisplayName("일간 인기 리뷰 알림 생성")
@@ -431,6 +441,10 @@ class NotificationServiceImplTest {
         );
 
         assertThat(result).isEqualTo(dto);
+
+        then(notificationSseService)
+                .should()
+                .notify(userId);
     }
 
     @Test
@@ -470,6 +484,10 @@ class NotificationServiceImplTest {
         then(notificationRepository)
                 .should()
                 .save(any(Notification.class));
+
+        then(notificationSseService)
+                .should()
+                .notify(userId);
     }
 
     @Test
@@ -509,6 +527,10 @@ class NotificationServiceImplTest {
         then(notificationRepository)
                 .should()
                 .save(any(Notification.class));
+
+        then(notificationSseService)
+                .should()
+                .notify(userId);
     }
 
     @Test
@@ -548,6 +570,10 @@ class NotificationServiceImplTest {
         then(notificationRepository)
                 .should()
                 .save(any(Notification.class));
+
+        then(notificationSseService)
+                .should()
+                .notify(userId);
     }
 
     @Test

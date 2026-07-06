@@ -11,6 +11,7 @@ import com.sbproject.deokhugam.notification.mapper.NotificationMapper;
 import com.sbproject.deokhugam.notification.repository.NotificationQueryRepository;
 import com.sbproject.deokhugam.notification.repository.NotificationRepository;
 import com.sbproject.deokhugam.notification.service.NotificationService;
+import com.sbproject.deokhugam.notification.service.NotificationSseService;
 import com.sbproject.deokhugam.review.entity.Review;
 import com.sbproject.deokhugam.review.exception.ReviewNotFoundException;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
@@ -34,6 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationMapper notificationMapper;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final NotificationSseService notificationSseService;
 
     @Transactional(readOnly = true)
     @Override
@@ -119,7 +121,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .message(message)
                 .confirmed(false)
                 .build();
-
+        notificationSseService.notify(receiverId);
         return notificationMapper.toDto(notificationRepository.save(notification));
     }
 
@@ -133,14 +135,7 @@ public class NotificationServiceImpl implements NotificationService {
             case REVIEW_LIKE -> nickname + "님이 회원님의 리뷰를 좋아합니다.";
 
             case REVIEW_COMMENT -> nickname + "님이 회원님의 리뷰에 댓글을 남겼습니다.";
-
-            case POPULAR_DAILY -> "회원님의 리뷰가 일간 인기 리뷰 TOP10에 선정되었습니다.";
-
-            case POPULAR_WEEKLY -> "회원님의 리뷰가 주간 인기 리뷰 TOP10에 선정되었습니다.";
-
-            case POPULAR_MONTHLY -> "회원님의 리뷰가 월간 인기 리뷰 TOP10에 선정되었습니다.";
-
-            case POPULAR_ALL_TIME -> "회원님의 리뷰가 전체 인기 리뷰 TOP10에 선정되었습니다.";
+            default -> "";
         };
     }
 
