@@ -1,7 +1,6 @@
 package com.sbproject.deokhugam.review.integretion;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -11,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +29,10 @@ import com.sbproject.deokhugam.book.repository.BookRepository;
 import com.sbproject.deokhugam.review.dto.ReviewCreateRequest;
 import com.sbproject.deokhugam.review.dto.ReviewDto;
 import com.sbproject.deokhugam.review.dto.ReviewUpdateRequest;
+import com.sbproject.deokhugam.review.entity.Review;
+import com.sbproject.deokhugam.review.entity.ReviewLike;
+import com.sbproject.deokhugam.review.repository.ReviewLikeRepository;
+import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.review.service.ReviewService;
 import com.sbproject.deokhugam.user.entity.User;
 import com.sbproject.deokhugam.user.repository.UserRepository;
@@ -53,6 +57,12 @@ class ReviewIntegrationTest {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private ReviewRepository reviewRepository;
+
+	@Autowired
+	private ReviewLikeRepository reviewLikeRepository;
 
 	private Book testBook;
 	private User testUser;
@@ -247,5 +257,118 @@ class ReviewIntegrationTest {
 				.header(HEADER_USER_ID, testUser.getId().toString()))
 			.andExpect(status().isOk())
 			.andDo(print());
+	}
+
+	@Test
+	@DisplayName("리뷰 목록 조회 성공: 기본 최신순 정렬, 키워드 검색, 좋아요 및 다음 페이지 커서 검증")
+	void getReviewList_DefaultCreatedAtDesc_WithKeywordAndLikes() throws Exception {
+		// given
+		Book anotherBook = Book.builder()
+			.isbn("9788960777331")
+			.title("JPA 실무 고도화 전략")
+			.author("김영한")
+			.description("JPA 실무 활용법을 고도화 단계까지 다루는 가이드라인 북입니다.")
+			.publisher("에이콘출판사")
+			.publishedDate(LocalDate.of(2015, 7, 28))
+			.thumbnailUrl("https://example.com/thumbnails/book456.png")
+			.reviewCount(0)
+			.totalScore(0)
+			.rating(0.0)
+			.build();
+		bookRepository.save(anotherBook);
+
+		Review review1 = Review.builder()
+			.id(UUID.randomUUID())
+			.user(testUser)
+			.book(testBook)
+			.content("JPA 공부하기 정말 좋은 기본서 추천합니다.")
+			.rating(4)
+			.build();
+		reviewRepository.save(review1);
+
+		Review review2 = Review.builder()
+			.id(UUID.randomUUID())
+			.user(testUser)
+			.book(anotherBook)
+			.content("이 책은 혁명입니다. 무조건 사세요 JPA.")
+			.rating(5)
+			.build();
+		reviewRepository.save(review2);
+
+		com.sbproject.deokhugam.review.entity.ReviewLike like = com.sbproject.deokhugam.review.entity.ReviewLike.builder()
+			.id(UUID.randomUUID())
+			.review(review2)
+			.user(testUser)
+			.build();
+		reviewLikeRepository.save(like);
+
+		// when & then
+		mockMvc.perform(get("/api/reviews")
+				.header(HEADER_USER_ID, testUser.getId().toString())
+				.param("keyword", "JPA")
+				.param("limit", "1")
+				.param("orderBy", "createdAt")
+				.param("direction", "DESC")
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content[0].content", is("이 책은 혁명입니다. 무조건 사세요 JPA.")))
+			.andExpect(jsonPath("$.content[0].likedByMe", is(true)))
+			.andExpect(jsonPath("$.hasNext", is(true)))
+			.andExpect(jsonPath("$.nextCursor", is(notNullValue())))
+			.andExpect(jsonPath("$.nextAfter", is(notNullValue())));
+	}
+
+	@Test
+	@DisplayName("리뷰 목록 조회 성공: 평점 오름차순 정렬, 커서 필터링 및 페이지 끝 도달 검증")
+	void getReviewList_OrderByRatingAsc_WithCursor() throws Exception {
+		// given
+		Book anotherBook = Book.builder()
+			.isbn("9788960777332")
+			.title("토비의 스프링")
+			.author("이일민")
+			.description("스프링 프레임워크의 깊은 내공과 구조적 지식을 완벽하게 학습하는 마스터 가이드서입니다.")
+			.publisher("에이콘출판사")
+			.publishedDate(LocalDate.of(2012, 9, 1))
+			.thumbnailUrl("https://example.com/thumbnails/book789.png")
+			.reviewCount(0)
+			.totalScore(0)
+			.rating(0.0)
+			.build();
+		bookRepository.save(anotherBook);
+
+		Review lowRatingReview = Review.builder()
+			.id(UUID.randomUUID())
+			.user(testUser)
+			.book(testBook)
+			.content("내용이 조금 어려워요 ㅠㅠ")
+			.rating(2)
+			.build();
+		reviewRepository.save(lowRatingReview);
+
+		Review highRatingReview = Review.builder()
+			.id(UUID.randomUUID())
+			.user(testUser)
+			.book(anotherBook)
+			.content("최고의 책 책장 필수 템")
+			.rating(5)
+			.build();
+		reviewRepository.save(highRatingReview);
+
+		// when & then
+		mockMvc.perform(get("/api/reviews")
+				.param("userId", testUser.getId().toString())
+				.param("orderBy", "rating")
+				.param("direction", "ASC")
+				.param("cursor", "2")
+				.param("limit", "10")
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content[0].rating", is(2)))
+			.andExpect(jsonPath("$.content[1].rating", is(5)))
+			.andExpect(jsonPath("$.hasNext", is(false)))
+			.andExpect(jsonPath("$.nextCursor", is(nullValue())))
+			.andExpect(jsonPath("$.nextAfter", is(nullValue())));
 	}
 }

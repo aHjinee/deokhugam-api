@@ -39,6 +39,7 @@ build/
 # Environment
 # =========================
 .env
+deokhugam.env
 
 # =========================
 # Logs
