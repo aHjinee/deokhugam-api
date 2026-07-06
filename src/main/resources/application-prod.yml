@@ -10,7 +10,7 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/deokhugam?authSource=admin
+      uri: ${SPRING_DATA_MONGODB_URI}
 
   jpa:
     hibernate:
@@ -21,10 +21,23 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+  sql:
+    init:
+      mode: ${SPRING_SQL_INIT_MODE:never}
+      continue-on-error: true
+      schema-locations:
+        - classpath:schema_batch.sql
+
+batch:
+  jdbc:
+    initialize-schema: never
+  job:
+    enabled: false
+
+servlet:
+  multipart:
+    max-file-size: 10MB
+    max-request-size: 10MB
 
 management:
   endpoints:
