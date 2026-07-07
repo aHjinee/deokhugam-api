@@ -3,7 +3,6 @@ package com.sbproject.deokhugam.review.repository.querydsl;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,10 +38,10 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 	public SlicePageResponse<ReviewDto> searchReviewsCursorSorted(ReviewSearchRequest req) {
 		BooleanBuilder where = new BooleanBuilder();
 
-		// limit 조건 기본값 50
+		// 1. 기본 limit 설정
 		int size = (req.getLimit() != null && req.getLimit() > 0) ? req.getLimit() : 50;
 
-		// Soft Delete 필터링
+		// 2. 기본 필터링 (Soft Delete, 키워드 검색 등)
 		where.and(r.deletedAt.isNull());
 
 		if (req.getUserId() != null) {
@@ -53,7 +52,6 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			where.and(r.book.id.eq(req.getBookId()));
 		}
 
-		// Keyword 동적 검색
 		if (req.getKeyword() != null && !req.getKeyword().isBlank()) {
 			where.and(
 				b.title.containsIgnoreCase(req.getKeyword())
@@ -62,36 +60,44 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			);
 		}
 
-		// 특정 날짜 이후 필터
-		if (req.getAfter() != null) {
-			where.and(r.createdAt.gt(req.getAfter()));
-		}
-
-		// 정렬 방향 및 커서(String 포맷의 Instant 형식) 처리
+		// 3. 정렬 방향 설정
 		Order orderDirection = ("ASC".equalsIgnoreCase(req.getDirection())) ? Order.ASC : Order.DESC;
 		List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
+		// 4. 정렬 및 커서(NextAfter 기반) 복합 조건 처리
 		if ("rating".equalsIgnoreCase(req.getOrderBy())) {
-			// 평점순 정렬
+			// [평점순 정렬]
 			orderSpecifiers.add(new OrderSpecifier<>(orderDirection, r.rating));
-			orderSpecifiers.add(new OrderSpecifier<>(Order.ASC, r.createdAt)); // 보조 정렬
+			orderSpecifiers.add(new OrderSpecifier<>(Order.DESC, r.createdAt));
 
-			if (req.getCursor() != null && !req.getCursor().isBlank()) {
+			if (req.getCursor() != null && !req.getCursor().isBlank() && req.getAfter() != null) {
 				try {
 					int cursorRating = Integer.parseInt(req.getCursor());
+					Instant afterTime = req.getAfter();
+
 					if (orderDirection == Order.DESC) {
-						where.and(r.rating.loe(cursorRating));
+						where.and(
+							r.rating.lt(cursorRating)
+								.or(r.rating.eq(cursorRating).and(r.createdAt.lt(afterTime)))
+						);
 					} else {
-						where.and(r.rating.goe(cursorRating));
+						where.and(
+							r.rating.gt(cursorRating)
+								.or(r.rating.eq(cursorRating).and(r.createdAt.lt(afterTime)))
+						);
 					}
 				} catch (NumberFormatException ignored) {}
 			}
 		} else {
-			// 시간순 정렬 (기본값)
 			orderSpecifiers.add(new OrderSpecifier<>(orderDirection, r.createdAt));
-			orderSpecifiers.add(new OrderSpecifier<>(Order.DESC, r.id)); // 보조 정렬
 
-			if (req.getCursor() != null && !req.getCursor().isBlank()) {
+			if (req.getAfter() != null) {
+				if (orderDirection == Order.DESC) {
+					where.and(r.createdAt.lt(req.getAfter()));
+				} else {
+					where.and(r.createdAt.gt(req.getAfter()));
+				}
+			} else if (req.getCursor() != null && !req.getCursor().isBlank()) {
 				try {
 					Instant cursorInstant = Instant.parse(req.getCursor());
 					if (orderDirection == Order.DESC) {
@@ -103,7 +109,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			}
 		}
 
-		// 현재 로그인 유저 식별 (헤더 식별값을 최우선순위로)
+		// 5. 로그인 유저 식별
 		UUID activeUserId = null;
 		if (req.getDeokhugamRequestUserId() != null) {
 			activeUserId = req.getDeokhugamRequestUserId();
@@ -111,6 +117,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			activeUserId = req.getRequestUserId();
 		}
 
+		// 6. 쿼리 실행 (size + 1 조회를 통해 다음 페이지 존재 판별)
 		List<ReviewDto> rowsPlusOne = queryFactory
 			.select(Projections.constructor(
 				ReviewDto.class,
@@ -137,15 +144,14 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			.limit(size + 1L)
 			.fetch();
 
-		// Next 페이지 여부 확인 및 slice 절삭
+		// 7. 슬라이스 결과 처리
 		boolean hasNext = rowsPlusOne.size() > size;
 		List<ReviewDto> responseContents = hasNext ? rowsPlusOne.subList(0, size) : rowsPlusOne;
 
-		// nextCursor 및 nextAfter 바인딩 방어
 		String nextCursorStr = null;
 		Instant nextAfterInst = null;
 
-		// 다음 페이지가 존재할 때만 커서 값을 세팅하고, 없으면 null을 유지
+		// 다음 페이지가 존재할 때만 정확하게 포인터 세팅
 		if (hasNext && !responseContents.isEmpty()) {
 			ReviewDto lastElement = responseContents.get(responseContents.size() - 1);
 
