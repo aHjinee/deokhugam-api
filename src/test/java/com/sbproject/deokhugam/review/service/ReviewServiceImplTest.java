@@ -27,6 +27,7 @@ import com.sbproject.deokhugam.review.exception.ReviewNotOwnedException;
 import com.sbproject.deokhugam.review.repository.ReviewLikeRepository;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.review.service.Impl.ReviewServiceImpl;
+import com.sbproject.deokhugam.storage.FileStorage;
 import com.sbproject.deokhugam.user.entity.User;
 import com.sbproject.deokhugam.user.exception.UserNotFoundException;
 import com.sbproject.deokhugam.user.repository.UserRepository;
@@ -53,6 +54,9 @@ class ReviewServiceImplTest {
 
 	@Mock
 	private ReviewLikeRepository reviewLikeRepository;
+
+	@Mock
+	private FileStorage fileStorage;
 
 	@InjectMocks
 	private ReviewServiceImpl reviewService;

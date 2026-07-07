@@ -20,6 +20,7 @@ import com.sbproject.deokhugam.review.exception.ReviewNotOwnedException;
 import com.sbproject.deokhugam.review.repository.ReviewLikeRepository;
 import com.sbproject.deokhugam.review.repository.ReviewRepository;
 import com.sbproject.deokhugam.review.service.ReviewService;
+import com.sbproject.deokhugam.storage.FileStorage;
 import com.sbproject.deokhugam.user.entity.User;
 import com.sbproject.deokhugam.user.exception.UserNotFoundException;
 import com.sbproject.deokhugam.user.repository.UserRepository;
@@ -36,6 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
 	private final UserRepository userRepository;
 	private final BookRepository bookRepository;
 	private final ReviewLikeRepository reviewLikeRepository;
+	private final FileStorage fileStorage;
 
 	@Override
 	@Transactional
@@ -163,7 +165,13 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	public SlicePageResponse<ReviewDto> findAll(ReviewSearchRequest request) {
-		return reviewRepository.searchReviewsCursorSorted(request);
+		SlicePageResponse<ReviewDto> page = reviewRepository.searchReviewsCursorSorted(request);
+		page.getContent().forEach(dto -> {
+			if(dto.getBookThumbnailUrl() != null) {
+				dto.setBookThumbnailUrl(fileStorage.getUrl(dto.getBookThumbnailUrl()));
+			}
+		});
+		return page;
 	}
 
 	private ReviewDto convertToDto(Review review, boolean likedByMe) {
@@ -171,7 +179,7 @@ public class ReviewServiceImpl implements ReviewService {
 			.id(review.getId())
 			.bookId(review.getBook().getId())
 			.bookTitle(review.getBook().getTitle())
-			.bookThumbnailUrl(review.getBook().getThumbnailUrl())
+			.bookThumbnailUrl(fileStorage.getUrl(review.getBook().getThumbnailUrl()))
 			.userId(review.getUser().getId())
 			.userNickname(review.getUser().getNickname())
 			.content(review.getContent())

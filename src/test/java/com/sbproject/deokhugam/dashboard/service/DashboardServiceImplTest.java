@@ -30,6 +30,7 @@ import com.sbproject.deokhugam.dashboard.repository.PopularReviewsRepository;
 import com.sbproject.deokhugam.dashboard.repository.PowerUsersRepository;
 import com.sbproject.deokhugam.dashboard.repository.UserActivityStatsRepository;
 import com.sbproject.deokhugam.dashboard.service.impl.DashboardServiceImpl;
+import com.sbproject.deokhugam.storage.FileStorage;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceImplTest {
@@ -45,6 +46,9 @@ class DashboardServiceImplTest {
 
 	@Mock
 	private UserActivityStatsRepository userActivityStatsRepository;
+
+	@Mock
+	private FileStorage fileStorage;
 
 	@InjectMocks
 	private DashboardServiceImpl dashboardService;
