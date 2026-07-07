@@ -46,7 +46,7 @@ public class ReviewServiceImpl implements ReviewService {
 		User user = userRepository.findById(request.getUserId())
 			.orElseThrow(() -> UserNotFoundException.withId(request.getUserId()));
 
-		if (reviewRepository.existsByUserIdAndBookIdAndDeletedAtIsNotNull(request.getUserId(), request.getBookId())) {
+		if (reviewRepository.existsByUserIdAndBookIdAndDeletedAtIsNull(request.getUserId(), request.getBookId())) {
 			throw ReviewAlreadyExistsException.withIds(request.getUserId(), request.getBookId());
 		}
 

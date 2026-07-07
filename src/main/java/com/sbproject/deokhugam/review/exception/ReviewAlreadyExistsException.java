@@ -6,7 +6,7 @@ import com.sbproject.deokhugam.common.exception.ErrorCode;
 
 public class ReviewAlreadyExistsException extends ReviewException {
 	public ReviewAlreadyExistsException() {
-		super(ErrorCode.REVIEW_NOT_OWNED);
+		super(ErrorCode.REVIEW_ALREADY_EXISTS);
 	}
 
 	public static ReviewAlreadyExistsException withIds(UUID userId, UUID bookId) {

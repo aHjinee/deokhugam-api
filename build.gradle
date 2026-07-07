@@ -95,6 +95,10 @@ jacocoTestReport {
     }
 }
 
+jar {
+    enabled = false
+}
+
 /* ===== UTF-8 강제 ===== */
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
@@ -108,3 +112,4 @@ tasks.withType(JavaExec).configureEach {
 tasks.named('bootRun') {
     jvmArgs = ['-Dfile.encoding=UTF-8']
 }
+
