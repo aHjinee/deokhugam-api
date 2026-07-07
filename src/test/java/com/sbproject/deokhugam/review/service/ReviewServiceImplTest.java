@@ -1,16 +1,19 @@
 package com.sbproject.deokhugam.review.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sbproject.deokhugam.book.entity.Book;
 import com.sbproject.deokhugam.book.exception.BookNotFoundException;
@@ -31,14 +34,6 @@ import com.sbproject.deokhugam.storage.FileStorage;
 import com.sbproject.deokhugam.user.entity.User;
 import com.sbproject.deokhugam.user.exception.UserNotFoundException;
 import com.sbproject.deokhugam.user.repository.UserRepository;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceImplTest {
@@ -78,7 +73,7 @@ class ReviewServiceImplTest {
 
 		when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-		when(reviewRepository.existsByUserIdAndBookIdAndDeletedAtIsNotNull(userId, bookId)).thenReturn(false);
+		when(reviewRepository.existsByUserIdAndBookIdAndDeletedAtIsNull(userId, bookId)).thenReturn(false);
 		when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> {
 			Review review = invocation.getArgument(0);
 			return review; // 빌더로 생성된 내부 값을 확인하기 위해 그대로 반환
@@ -111,7 +106,6 @@ class ReviewServiceImplTest {
 		assertThatThrownBy(() -> reviewService.create(request))
 			.isInstanceOf(BookNotFoundException.class);
 	}
-
 
 	@Test
 	@DisplayName("리뷰 등록 실패: 존재하지 않는 도서 ID일 경우 BookNotFoundException이 발생한다")
@@ -154,13 +148,12 @@ class ReviewServiceImplTest {
 
 		when(bookRepository.findById(bookId)).thenReturn(Optional.of(mock(Book.class)));
 		when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().build()));
-		when(reviewRepository.existsByUserIdAndBookIdAndDeletedAtIsNotNull(userId, bookId)).thenReturn(true);
+		when(reviewRepository.existsByUserIdAndBookIdAndDeletedAtIsNull(userId, bookId)).thenReturn(true);
 
 		// when & then
 		assertThatThrownBy(() -> reviewService.create(request))
 			.isInstanceOf(ReviewAlreadyExistsException.class);
 	}
-
 
 	// ==========================================
 	// 2. update() 테스트 그룹
@@ -255,7 +248,6 @@ class ReviewServiceImplTest {
 			.isInstanceOf(ReviewNotOwnedException.class);
 	}
 
-
 	// ==========================================
 	// 3. findById() 테스트 그룹
 	// ==========================================
@@ -310,7 +302,6 @@ class ReviewServiceImplTest {
 			.isInstanceOf(ReviewNotFoundException.class);
 	}
 
-
 	// ==========================================
 	// 4. delete() 테스트 그룹 (하드 딜리트)
 	// ==========================================
@@ -355,7 +346,6 @@ class ReviewServiceImplTest {
 		verify(reviewRepository, never()).delete(any(Review.class));
 	}
 
-
 	// ==========================================
 	// 5. deleteSoft() 테스트 그룹 (소프트 딜리트)
 	// ==========================================
@@ -397,7 +387,6 @@ class ReviewServiceImplTest {
 		assertThatThrownBy(() -> reviewService.deleteSoft(reviewId, userId))
 			.isInstanceOf(ReviewNotFoundException.class);
 	}
-
 
 	// ==========================================
 	// 6. findAll() 테스트 그룹
