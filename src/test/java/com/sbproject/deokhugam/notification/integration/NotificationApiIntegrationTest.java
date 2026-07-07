@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -272,6 +273,28 @@ class NotificationApiIntegrationTest {
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("SSE 연결 성공")
+        void subscribe_success() throws Exception {
+
+            mockMvc.perform(
+                            get("/api/notifications/subscribe")
+                                    .header("Deokhugam-Request-User-ID", USER_ID)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(header().exists("Content-Type"));
+        }
+
+        @Test
+        @DisplayName("SSE 연결 - 헤더 없음")
+        void subscribe_withoutHeader() throws Exception {
+
+            mockMvc.perform(
+                            get("/api/notifications/subscribe")
+                    )
+                    .andExpect(status().isInternalServerError());
         }
     }
 }

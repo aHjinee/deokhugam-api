@@ -22,8 +22,17 @@ import com.sbproject.deokhugam.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +43,10 @@ public class DashboardServiceImpl implements DashboardService {
   private final PowerUsersRepository powerUsersRepository;
   private final UserActivityStatsRepository userActivityStatsRepository;
   private final FileStorage fileStorage;
+	private static final ZoneId SEOUL_ZONE =
+		ZoneId.of("Asia/Seoul");
+
+	private static final int ACTIVITY_CYCLE_DAYS = 30;
 
   @Override
   public PopularBooksResponse getPopularBooks(PeriodType  period, String direction, int limit) {
@@ -104,19 +117,75 @@ public class DashboardServiceImpl implements DashboardService {
   }
 
 	@Override
-	public UserActivityStatsResponse getUserActivityStats(String userId) {
-		List<UserActivityStatsDocument> docs =
-			userActivityStatsRepository.findTop30ByUserIdOrderByActivityDateDesc(userId);
+	public UserActivityStatsResponse getUserActivityStats(
+		String userId
+	) {
+		LocalDate today = LocalDate.now(SEOUL_ZONE);
 
+		// GitHub 잔디처럼 "오늘부터 최근 30일" 고정 윈도우
+		LocalDate rangeStart = today.minusDays(ACTIVITY_CYCLE_DAYS - 1);
+
+		Instant startInstant =
+			rangeStart
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		Instant endInstant =
+			today.plusDays(1)
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		List<UserActivityStatsDocument> docs =
+			userActivityStatsRepository
+				.findActivityStatsByPeriod(
+					userId,
+					startInstant,
+					endInstant
+				);
+
+		/*
+		 * 활동 기록이 한 건도 없는 사용자는 빈 응답을 반환한다.
+		 */
 		if (docs.isEmpty()) {
 			return UserActivityStatsResponse.empty(userId);
 		}
 
-		List<UserActivityStatsResponse.UserActivityStatEntry> content = docs.stream()
-			.map(UserActivityStatsResponse.UserActivityStatEntry::from)
-			.toList();
+		Map<LocalDate, UserActivityStatsDocument> documentByDate =
+			docs.stream()
+				.collect(Collectors.toMap(
+					document -> document
+						.getActivityDate()
+						.atZone(SEOUL_ZONE)
+						.toLocalDate(),
+					Function.identity()
+				));
 
-		return new UserActivityStatsResponse(userId, content);
+		List<UserActivityStatsResponse.UserActivityStatEntry> content =
+			IntStream.range(0, ACTIVITY_CYCLE_DAYS)
+				.mapToObj(rangeStart::plusDays)
+				.map(date -> {
+					UserActivityStatsDocument document =
+						documentByDate.get(date);
+
+					if (document != null) {
+						return UserActivityStatsResponse
+							.UserActivityStatEntry
+							.from(document);
+					}
+
+					return UserActivityStatsResponse
+						.UserActivityStatEntry
+						.empty(
+							date.atStartOfDay(SEOUL_ZONE)
+								.toInstant()
+						);
+				})
+				.toList();
+
+		return new UserActivityStatsResponse(
+			userId,
+			content
+		);
 	}
 
 }

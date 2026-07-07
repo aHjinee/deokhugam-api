@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +53,9 @@ class DashboardApiIntegrationTest {
 		Instant.parse("2026-07-01T00:00:00Z");
 	private static final Instant CREATED_AT =
 		Instant.parse("2026-07-01T01:00:00Z");
+
+	private static final ZoneId SEOUL_ZONE =
+		ZoneId.of("Asia/Seoul");
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -515,11 +520,24 @@ class DashboardApiIntegrationTest {
 	// ---------- 사용자 활동 통계 GET /api/users/{userId}/activity-stats ----------
 
 	@Test
-	@DisplayName("사용자 활동 통계 조회 - 날짜가 최신인 순서로 반환한다")
+	@DisplayName("사용자 활동 통계 조회 - 오늘부터 최근 30일을 날짜 오름차순으로 반환한다")
 	void getUserActivityStats_success() throws Exception {
+		LocalDate today = LocalDate.now(SEOUL_ZONE);
+		LocalDate rangeStart = today.minusDays(29);
+
+		Instant rangeStartInstant =
+			rangeStart
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		Instant todayInstant =
+			today
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			Instant.parse("2026-06-30T00:00:00Z"),
+			rangeStartInstant,
 			2,
 			3,
 			4,
@@ -530,7 +548,7 @@ class DashboardApiIntegrationTest {
 
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			Instant.parse("2026-07-01T00:00:00Z"),
+			todayInstant,
 			7,
 			8,
 			9,
@@ -545,25 +563,99 @@ class DashboardApiIntegrationTest {
 			))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.userId").value(USER_ID_1))
-			.andExpect(jsonPath("$.content.length()").value(2))
+			.andExpect(jsonPath("$.content.length()").value(30))
+
+			// 30일 전 (범위 시작일)
 			.andExpect(jsonPath("$.content[0].activityDate")
-				.value("2026-07-01T00:00:00Z"))
-			.andExpect(jsonPath("$.content[0].reviewCount").value(7))
-			.andExpect(jsonPath("$.content[0].commentCount").value(8))
-			.andExpect(jsonPath("$.content[0].likeCount").value(9))
-			.andExpect(jsonPath("$.content[0].receivedCommentCount").value(10))
-			.andExpect(jsonPath("$.content[0].receivedLikeCount").value(11))
-			.andExpect(jsonPath("$.content[0].dailyPowerRank").value(1))
-			.andExpect(jsonPath("$.content[1].activityDate")
-				.value("2026-06-30T00:00:00Z"));
+				.value(rangeStartInstant.toString()))
+			.andExpect(jsonPath("$.content[0].reviewCount").value(2))
+			.andExpect(jsonPath("$.content[0].commentCount").value(3))
+			.andExpect(jsonPath("$.content[0].likeCount").value(4))
+			.andExpect(jsonPath("$.content[0].receivedCommentCount").value(5))
+			.andExpect(jsonPath("$.content[0].receivedLikeCount").value(6))
+			.andExpect(jsonPath("$.content[0].dailyPowerRank").value(2))
+
+			// 오늘 (범위 마지막 날)
+			.andExpect(jsonPath("$.content[29].activityDate")
+				.value(todayInstant.toString()))
+			.andExpect(jsonPath("$.content[29].reviewCount").value(7))
+			.andExpect(jsonPath("$.content[29].commentCount").value(8))
+			.andExpect(jsonPath("$.content[29].likeCount").value(9))
+			.andExpect(jsonPath("$.content[29].receivedCommentCount").value(10))
+			.andExpect(jsonPath("$.content[29].receivedLikeCount").value(11))
+			.andExpect(jsonPath("$.content[29].dailyPowerRank").value(1))
+
+			// 데이터가 없는 날짜는 0과 null
+			.andExpect(jsonPath("$.content[1].reviewCount").value(0))
+			.andExpect(jsonPath("$.content[1].commentCount").value(0))
+			.andExpect(jsonPath("$.content[1].likeCount").value(0))
+			.andExpect(jsonPath("$.content[1].receivedCommentCount").value(0))
+			.andExpect(jsonPath("$.content[1].receivedLikeCount").value(0))
+			.andExpect(jsonPath("$.content[1].dailyPowerRank").isEmpty());
+	}
+
+	@Test
+	@DisplayName("사용자 활동 통계 조회 - 범위(30일) 밖의 오래된 활동은 포함하지 않는다")
+	void getUserActivityStats_excludesOutOfRangeActivity() throws Exception {
+		LocalDate today = LocalDate.now(SEOUL_ZONE);
+		LocalDate rangeStart = today.minusDays(29);
+		LocalDate outOfRangeDate = rangeStart.minusDays(5);
+
+		Instant rangeStartInstant =
+			rangeStart
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		Instant outOfRangeInstant =
+			outOfRangeDate
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
+		// 범위 밖(30일보다 더 과거) 활동 - 응답에 포함되면 안 됨
+		userActivityStatsRepository.save(userActivityStatsDocument(
+			USER_ID_1,
+			outOfRangeInstant,
+			99,
+			99,
+			99,
+			99,
+			99,
+			1
+		));
+
+		userActivityStatsRepository.save(userActivityStatsDocument(
+			USER_ID_1,
+			rangeStartInstant,
+			1,
+			1,
+			1,
+			1,
+			1,
+			5
+		));
+
+		mockMvc.perform(get(
+				"/api/users/{userId}/activity-stats",
+				USER_ID_1
+			))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content.length()").value(30))
+			.andExpect(jsonPath("$.content[0].activityDate")
+				.value(rangeStartInstant.toString()))
+			.andExpect(jsonPath("$.content[0].reviewCount").value(1));
 	}
 
 	@Test
 	@DisplayName("사용자 활동 통계 조회 - 순위가 미확정이면 dailyPowerRank는 null이다")
 	void getUserActivityStats_nullDailyPowerRank() throws Exception {
+		Instant activityDate =
+			LocalDate.now(SEOUL_ZONE)
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			Instant.parse("2026-07-01T00:00:00Z"),
+			activityDate,
 			1,
 			2,
 			3,
@@ -577,8 +669,11 @@ class DashboardApiIntegrationTest {
 				USER_ID_1
 			))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.content.length()").value(1))
-			.andExpect(jsonPath("$.content[0].dailyPowerRank").isEmpty());
+			.andExpect(jsonPath("$.content.length()").value(30))
+			.andExpect(jsonPath("$.content[29].activityDate")
+				.value(activityDate.toString()))
+			.andExpect(jsonPath("$.content[29].reviewCount").value(1))
+			.andExpect(jsonPath("$.content[29].dailyPowerRank").isEmpty());
 	}
 
 	@Test
@@ -596,9 +691,14 @@ class DashboardApiIntegrationTest {
 	@Test
 	@DisplayName("사용자 활동 통계 조회 - 다른 사용자의 통계는 포함하지 않는다")
 	void getUserActivityStats_excludesOtherUsers() throws Exception {
+		Instant activityDate =
+			LocalDate.now(SEOUL_ZONE)
+				.atStartOfDay(SEOUL_ZONE)
+				.toInstant();
+
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_1,
-			Instant.parse("2026-07-01T00:00:00Z"),
+			activityDate,
 			1,
 			1,
 			1,
@@ -609,7 +709,7 @@ class DashboardApiIntegrationTest {
 
 		userActivityStatsRepository.save(userActivityStatsDocument(
 			USER_ID_2,
-			Instant.parse("2026-07-01T00:00:00Z"),
+			activityDate,
 			9,
 			9,
 			9,
@@ -624,8 +724,12 @@ class DashboardApiIntegrationTest {
 			))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.userId").value(USER_ID_1))
-			.andExpect(jsonPath("$.content.length()").value(1))
-			.andExpect(jsonPath("$.content[0].reviewCount").value(1));
+			.andExpect(jsonPath("$.content.length()").value(30))
+			.andExpect(jsonPath("$.content[29].activityDate")
+				.value(activityDate.toString()))
+			.andExpect(jsonPath("$.content[29].reviewCount").value(1))
+			.andExpect(jsonPath("$.content[29].commentCount").value(1))
+			.andExpect(jsonPath("$.content[29].dailyPowerRank").value(1));
 	}
 
 	// ---------- 테스트 데이터 생성 ----------
