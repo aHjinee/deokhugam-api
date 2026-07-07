@@ -29,10 +29,22 @@ jobs:
       - name: 소스 코드 체크아웃
         uses: actions/checkout@v5
 
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
       # 도서 검색이 pg_bigm 확장을 사용하므로 공식 postgres 이미지에 pg_bigm을 직접 빌드해서 사용
-      - name: pg_bigm PostgreSQL 빌드 및 실행
+      - name: pg_bigm PostgreSQL 이미지 빌드
+        uses: docker/build-push-action@v6
+        with:
+          context: docker
+          file: docker/postgres-bigm.Dockerfile
+          tags: postgres-bigm
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: PostgreSQL 실행
         run: |
-          docker build -t postgres-bigm -f docker/postgres-bigm.Dockerfile docker
           docker run -d --name postgres -p 5432:5432 \
             -e POSTGRES_USER=user1 \
             -e POSTGRES_PASSWORD=1234 \
