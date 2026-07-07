@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sbproject.deokhugam.book.dto.BookOrderBy;
 import com.sbproject.deokhugam.book.dto.Direction;
@@ -33,10 +34,21 @@ public class BookQueryRepositoryImpl implements BookQueryRepository {
 		BooleanBuilder where = new BooleanBuilder();
 		where.and(book.deletedAt.isNull());
 		if (keyword != null && !keyword.isBlank()) {
+			String normalized = keyword.toLowerCase().replace(" ", "");
+			BooleanExpression titleMatch = Expressions.booleanTemplate(
+				"replace(lower({0}), ' ', '') like concat('%', {1}, '%')", book.title, normalized);
+			BooleanExpression authorMatch = Expressions.booleanTemplate(
+				"replace(lower({0}), ' ', '') like concat('%', {1}, '%')", book.author, normalized);
+			BooleanExpression titleSimilar = Expressions.booleanTemplate(
+				"function('bigm_similar', replace(lower({0}), ' ', ''), {1}) = true", book.title, normalized);
+			BooleanExpression authorSimilar = Expressions.booleanTemplate(
+				"function('bigm_similar', replace(lower({0}), ' ', ''), {1}) = true", book.author, normalized);
 			where.and(
-				book.title.containsIgnoreCase(keyword)
-				          .or(book.author.containsIgnoreCase(keyword))
-				          .or(book.isbn.containsIgnoreCase(keyword))
+				titleMatch
+					.or(authorMatch)
+					.or(titleSimilar)
+					.or(authorSimilar)
+					.or(book.isbn.contains(keyword))
 			);
 		}
 		boolean desc = Direction.DESC.equals(direction);

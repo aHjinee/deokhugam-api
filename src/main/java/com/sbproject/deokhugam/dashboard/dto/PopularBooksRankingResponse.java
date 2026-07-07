@@ -31,13 +31,13 @@ public class PopularBooksRankingResponse {
 
 	public static PopularBooksRankingResponse from(
 		PopularBooksDocument.Ranking ranking,
-		PopularBooksDocument document
-	) {
+		PopularBooksDocument document,
+		String url) {
 		return new PopularBooksRankingResponse(
 			ranking.getBookId(),
 			ranking.getTitle(),
 			ranking.getAuthor(),
-			ranking.getThumbnailUrl(),
+			url,
 			document.getPeriodType(),
 			ranking.getRank(),
 			ranking.getScore(),

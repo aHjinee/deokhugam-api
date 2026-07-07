@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -286,14 +287,13 @@ public class BookServiceImplTest {
 	}
 
 	@Test
-	@DisplayName("도서 등록 - 썸네일 이미지가 있으면 저장 후 URL을 사용")
+	@DisplayName("도서 등록 - 썸네일 이미지가 있으면 저장 후 키를 저장")
 	void createBook_withThumbnail() {
 		//given
 		BookCreateRequest request =
 			new BookCreateRequest(title, author, description, publisher, publishedDate, isbn);
 		given(bookRepository.findByIsbn(isbn)).willReturn(Optional.empty());
 		given(fileStorage.save(image)).willReturn("storageKey");
-		given(fileStorage.getUrl("storageKey")).willReturn("http://localhost:8080/files/storageKey");
 		given(bookRepository.save(any(Book.class))).willReturn(book);
 		given(bookMapper.toBookDto(book)).willReturn(bookDto);
 
@@ -303,7 +303,9 @@ public class BookServiceImplTest {
 		//then
 		assertThat(response).isEqualTo(bookDto);
 		then(fileStorage).should().save(image);
-		then(fileStorage).should().getUrl("storageKey");
+		ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
+		then(bookRepository).should().save(bookCaptor.capture());
+		assertThat(bookCaptor.getValue().getThumbnailUrl()).isEqualTo("storageKey");
 	}
 
 	@Test
@@ -428,14 +430,13 @@ public class BookServiceImplTest {
 	}
 
 	@Test
-	@DisplayName("도서 수정 - 썸네일 이미지가 있으면 저장 후 URL로 교체")
+	@DisplayName("도서 수정 - 썸네일 이미지가 있으면 저장 후 키로 교체")
 	void updateBook_withThumbnail() {
 		//given
 		BookUpdateRequest request =
 			new BookUpdateRequest(title, author, description, publisher, publishedDate);
 		given(bookRepository.findByIdAndDeletedAtIsNull(bookId)).willReturn(Optional.of(book));
 		given(fileStorage.save(image)).willReturn("storageKey");
-		given(fileStorage.getUrl("storageKey")).willReturn("http://localhost:8080/files/storageKey");
 		given(bookRepository.save(book)).willReturn(book);
 		given(bookMapper.toBookDto(book)).willReturn(bookDto);
 
@@ -444,9 +445,8 @@ public class BookServiceImplTest {
 
 		//then
 		assertThat(response).isEqualTo(bookDto);
-		assertThat(book.getThumbnailUrl()).isEqualTo("http://localhost:8080/files/storageKey");
+		assertThat(book.getThumbnailUrl()).isEqualTo("storageKey");
 		then(fileStorage).should().save(image);
-		then(fileStorage).should().getUrl("storageKey");
 	}
 
 	@Test

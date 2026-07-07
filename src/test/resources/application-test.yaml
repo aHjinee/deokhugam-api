@@ -26,6 +26,11 @@ spring:
       hibernate:
         format_sql: true
 
+# 외부 API 키 더미 값
+NAVER_CLIENT_ID: test-naver-client-id
+NAVER_CLIENT_SECRET: test-naver-client-secret
+GEMINI_API_KEY: test-gemini-api-key
+
 logging:
   level:
     com.sbproject.deokhugam: debug

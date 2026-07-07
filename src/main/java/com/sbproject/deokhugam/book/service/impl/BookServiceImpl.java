@@ -76,12 +76,10 @@ public class BookServiceImpl implements BookService {
 	@Transactional
 	public BookDto createBook(@NonNull BookCreateRequest request, MultipartFile thumbnailImage) {
 		Optional<Book> book = bookRepository.findByIsbn(request.isbn());
-		String imageUrl = null;
 		String storageKey = null;
 		if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 			imageFileValidator.validate(thumbnailImage);
 			storageKey = fileStorage.save(thumbnailImage);
-			imageUrl = fileStorage.getUrl(storageKey);
 		}
 		if (book.isPresent()) {
 			if (book.get().isDeleted()) {
@@ -91,12 +89,12 @@ public class BookServiceImpl implements BookService {
 					request.description(),
 					request.publisher(),
 					request.publishedDate(),
-					imageUrl
+					storageKey
 				);
 				Book savedBook = bookRepository.save(book.get());
 				return bookMapper.toBookDto(savedBook);
 			} else {
-				if (imageUrl != null) {
+				if (storageKey != null) {
 					fileStorage.delete(storageKey);
 				}
 				throw BookAlreadyExistsException.withIsbn(request.isbn());
@@ -109,7 +107,7 @@ public class BookServiceImpl implements BookService {
 			                      .description(request.description())
 			                      .publisher(request.publisher())
 			                      .publishedDate(request.publishedDate())
-			                      .thumbnailUrl(imageUrl)
+			                      .thumbnailUrl(storageKey)
 			                      .reviewCount(0)
 			                      .totalScore(0)
 			                      .rating(0.0)
@@ -145,14 +143,13 @@ public class BookServiceImpl implements BookService {
 	public BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnailImage) {
 		Book book = bookRepository.findByIdAndDeletedAtIsNull(bookId)
 		                          .orElseThrow(() -> BookNotFoundException.withId(bookId));
-		String imageUrl = book.getThumbnailUrl();
+		String storageKey = book.getThumbnailUrl();
 		if (thumbnailImage != null && !thumbnailImage.isEmpty()) {
 			imageFileValidator.validate(thumbnailImage);
-			String storageKey = fileStorage.save(thumbnailImage);
-			imageUrl = fileStorage.getUrl(storageKey);
+			storageKey = fileStorage.save(thumbnailImage);
 		}
 		book.update(request.title(), request.author(), request.description(), request.publisher(),
-		            request.publishedDate(), imageUrl);
+		            request.publishedDate(), storageKey);
 		return bookMapper.toBookDto(bookRepository.save(book));
 	}
 
@@ -165,6 +162,9 @@ public class BookServiceImpl implements BookService {
 	@Transactional
 	public void hardDeleteBook(UUID bookId) {
 		Book book = getBookOrThrow(bookId);
+		if (book.getThumbnailUrl() != null) {
+			fileStorage.delete(book.getThumbnailUrl());
+		}
 		bookRepository.delete(book);
 	}
 

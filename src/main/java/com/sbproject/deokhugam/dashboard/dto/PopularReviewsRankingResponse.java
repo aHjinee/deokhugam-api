@@ -29,14 +29,14 @@ public class PopularReviewsRankingResponse {
 
 	public static PopularReviewsRankingResponse from(
 		PopularReviewsDocument.Ranking ranking,
-		PopularReviewsDocument document
-	) {
+		PopularReviewsDocument document,
+		String url) {
 		return new PopularReviewsRankingResponse(
 			ranking.getReviewId(),
 			ranking.getReviewId(),
 			ranking.getBookId(),
 			ranking.getTitle(),
-			ranking.getThumbnailUrl(),
+			url,
 			ranking.getUserId(),
 			ranking.getNickname(),
 			ranking.getContent(),
