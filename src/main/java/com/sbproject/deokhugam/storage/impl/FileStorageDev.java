@@ -50,6 +50,9 @@ public class FileStorageDev implements FileStorage {
 
 	@Override
 	public String getUrl(String storageKey) {
+		if (storageKey == null) {
+			return null;
+		}
 		return "http://localhost:" + serverPort + "/files/" + storageKey;
 	}
 

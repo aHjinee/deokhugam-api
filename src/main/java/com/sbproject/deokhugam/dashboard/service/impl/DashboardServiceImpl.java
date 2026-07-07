@@ -17,6 +17,8 @@ import com.sbproject.deokhugam.dashboard.repository.PopularReviewsRepository;
 import com.sbproject.deokhugam.dashboard.repository.PowerUsersRepository;
 import com.sbproject.deokhugam.dashboard.repository.UserActivityStatsRepository;
 import com.sbproject.deokhugam.dashboard.service.DashboardService;
+import com.sbproject.deokhugam.storage.FileStorage;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +42,7 @@ public class DashboardServiceImpl implements DashboardService {
   private final PopularReviewsRepository popularReviewsRepository;
   private final PowerUsersRepository powerUsersRepository;
   private final UserActivityStatsRepository userActivityStatsRepository;
+  private final FileStorage fileStorage;
 	private static final ZoneId SEOUL_ZONE =
 		ZoneId.of("Asia/Seoul");
 
@@ -61,7 +64,7 @@ public class DashboardServiceImpl implements DashboardService {
             ? Comparator.comparingInt(PopularBooksDocument.Ranking::getRank).reversed()
             : Comparator.comparingInt(PopularBooksDocument.Ranking::getRank))
         .limit(limit)
-		.map(ranking -> PopularBooksRankingResponse.from(ranking, doc))
+		.map(ranking -> PopularBooksRankingResponse.from(ranking, doc, fileStorage.getUrl(ranking.getThumbnailUrl())))
         .toList();
 
     return new PopularBooksResponse(doc, rankings);
@@ -84,7 +87,7 @@ public class DashboardServiceImpl implements DashboardService {
             : Comparator.comparingDouble(PopularReviewsDocument.Ranking::getScore))
         .limit(limit)
 		.map(ranking ->
-			PopularReviewsRankingResponse.from(ranking, doc)
+			PopularReviewsRankingResponse.from(ranking, doc, fileStorage.getUrl(ranking.getThumbnailUrl()))
 		)
         .toList();
 

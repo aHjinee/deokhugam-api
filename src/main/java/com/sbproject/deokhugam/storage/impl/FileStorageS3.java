@@ -77,6 +77,9 @@ public class FileStorageS3 implements FileStorage {
 	// 다운로드 가능한 URL 경로 가져오기 (제한 10분)
 	@Override
 	public String getUrl(String storageKey) {
+		if (storageKey == null) {
+			return null;
+		}
 		// 요청 객체 생성
 		GetObjectRequest getReq = GetObjectRequest.builder()
 		                                          .bucket(bucket)

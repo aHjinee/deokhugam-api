@@ -96,6 +96,14 @@ public class BookApiIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("도서 목록 조회 - 키워드 검색 (bigm LIKE + 유사도 =%)")
+	void getBookList_keyword() throws Exception {
+		mockMvc.perform(get("/api/books").param("keyword", "채식"))
+		       .andExpect(status().isOk())
+		       .andExpect(jsonPath("$.content[0].title").value("채식주의자"));
+	}
+
+	@Test
 	@DisplayName("도서 목록 조회 - limit보다 많으면 hasNext와 nextCursor를 반환 (커서 페이지네이션)")
 	void getBookList_pagination() throws Exception {
 		mockMvc.perform(get("/api/books")
