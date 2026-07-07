@@ -62,10 +62,10 @@ jobs:
       - name: Gradle 권한 설정
         run: chmod +x ./gradlew
 
-      - name: 테스트 실행
-        run: ./gradlew test
+      - name: 테스트 및 JaCoCo 리포트 생성
+        run: ./gradlew test jacocoTestReport
 
-#      - name: CodeCov 업로드
-#        uses: codecov/codecov-action@v5
-#        with:
-#          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: CodeCov 업로드
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
