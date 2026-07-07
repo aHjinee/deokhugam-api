@@ -103,7 +103,14 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 			}
 		}
 
-		// 평탄화 데이터 쿼리 실행
+		// 현재 로그인 유저 식별 (헤더 식별값을 최우선순위로)
+		UUID activeUserId = null;
+		if (req.getDeokhugamRequestUserId() != null) {
+			activeUserId = req.getDeokhugamRequestUserId();
+		} else if (req.getRequestUserId() != null) {
+			activeUserId = req.getRequestUserId();
+		}
+
 		List<ReviewDto> rowsPlusOne = queryFactory
 			.select(Projections.constructor(
 				ReviewDto.class,
@@ -117,13 +124,14 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 				r.rating,
 				r.likeCount,
 				r.commentCount,
-				com.querydsl.core.types.dsl.Expressions.asBoolean(false),
+				rl.user.id.isNotNull(),
 				r.createdAt,
 				r.updatedAt
 			))
 			.from(r)
 			.join(r.book, b)
 			.join(r.user, u)
+			.leftJoin(rl).on(rl.review.id.eq(r.id).and(activeUserId != null ? rl.user.id.eq(activeUserId) : rl.user.id.isNull()))
 			.where(where)
 			.orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
 			.limit(size + 1L)
@@ -131,34 +139,7 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 
 		// Next 페이지 여부 확인 및 slice 절삭
 		boolean hasNext = rowsPlusOne.size() > size;
-		List<ReviewDto> contents = hasNext ? rowsPlusOne.subList(0, size) : rowsPlusOne;
-
-		// 현재 로그인 유저 식별 (헤더 식별값을 최우선순위로)
-		UUID activeUserId = null;
-		if (req.getDeokhugamRequestUserId() != null) {
-			activeUserId = req.getDeokhugamRequestUserId();
-		} else if (req.getRequestUserId() != null) {
-			activeUserId = req.getRequestUserId();
-		}
-
-		// In-Query 처리를 이용한 likedByMe 일괄 계산 최적화
-		List<UUID> likedReviewIds = Collections.emptyList();
-		if (activeUserId != null && !contents.isEmpty()) {
-			List<UUID> reviewIdsInPage = contents.stream().map(ReviewDto::getId).toList();
-			likedReviewIds = queryFactory
-				.select(rl.review.id)
-				.from(rl)
-				.where(rl.user.id.eq(activeUserId).and(rl.review.id.in(reviewIdsInPage)))
-				.fetch();
-		}
-
-		// Response 스펙 DTO 리스트 생성
-		List<UUID> finalLikedReviewIds = likedReviewIds;
-		List<ReviewDto> responseContents = contents.stream().map(flat -> {
-			boolean likedByMe = finalLikedReviewIds.contains(flat.getId());
-			flat.setLikedByMe(likedByMe);
-			return flat;
-		}).toList();
+		List<ReviewDto> responseContents = hasNext ? rowsPlusOne.subList(0, size) : rowsPlusOne;
 
 		// nextCursor 및 nextAfter 바인딩 방어
 		String nextCursorStr = null;
