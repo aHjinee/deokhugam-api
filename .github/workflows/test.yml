@@ -1,0 +1,59 @@
+name: Test
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    services:
+      mongodb:
+        image: mongo:8
+        env:
+          MONGO_INITDB_ROOT_USERNAME: local
+          MONGO_INITDB_ROOT_PASSWORD: local1234
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1})'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: 소스 코드 체크아웃
+        uses: actions/checkout@v5
+
+      # 도서 검색이 pg_bigm 확장을 사용하므로 공식 postgres 이미지에 pg_bigm을 직접 빌드해서 사용
+      - name: pg_bigm PostgreSQL 빌드 및 실행
+        run: |
+          docker build -t postgres-bigm -f docker/postgres-bigm.Dockerfile docker
+          docker run -d --name postgres -p 5432:5432 \
+            -e POSTGRES_USER=user1 \
+            -e POSTGRES_PASSWORD=1234 \
+            -e POSTGRES_DB=deokhugam_test \
+            postgres-bigm
+          timeout 60 bash -c 'until docker exec postgres pg_isready -U user1 -d deokhugam_test; do sleep 1; done'
+
+      - name: JDK 17 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          cache: 'gradle'
+
+      - name: Gradle 권한 설정
+        run: chmod +x ./gradlew
+
+      - name: 테스트 실행
+        run: ./gradlew test
+
+#      - name: CodeCov 업로드
+#        uses: codecov/codecov-action@v5
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
