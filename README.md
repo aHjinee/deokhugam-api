@@ -1,4 +1,5 @@
 # 📖덕후감 API
+[![codecov](https://codecov.io/gh/aHjinee/deokhugam-api/branch/main/graph/badge.svg?token=DZ08KPDALU)](https://codecov.io/gh/aHjinee/deokhugam-api)
 
 ## 프로젝트 개요
 
