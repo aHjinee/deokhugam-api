@@ -15,7 +15,7 @@ public class PopularReviewsRankingResponse {
 	private String reviewId;
 	private String bookId;
 	private String bookTitle;
-	private String bookthumbnailUrl;
+	private String bookThumbnailUrl;
 	private String userId;
 	private String userNickname;
 	private String reviewContent;
