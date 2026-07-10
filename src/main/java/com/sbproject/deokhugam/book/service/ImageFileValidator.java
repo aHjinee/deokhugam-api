@@ -12,7 +12,7 @@ import com.sbproject.deokhugam.book.exception.InvalidImageException;
 @Component
 public class ImageFileValidator {
 
-	private static final long MAX_SIZE = 10 * 1024 * 1024;
+	private static final long MAX_SIZE = 30 * 1024 * 1024;
 	private static final Set<String> ALLOWED = Set.of(
 		"image/png",
 		"image/jpeg",
